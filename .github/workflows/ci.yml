@@ -2,7 +2,8 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    # 分支推送也跑自检：合进 main 之前就能看到红灯，而不是等合并后才发现。
+    branches: [main, 'feat/**', 'fix/**', 'docs/**']
   pull_request:
   workflow_dispatch:
 
