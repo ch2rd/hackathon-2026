@@ -11,6 +11,7 @@
 
 ### 新增
 
+- **动态剧本封面**：为四个剧本制作对应故事场景的循环 SVG 封面，接入首页、剧本卡片与详情页；提供静态回退及可暂停的 `/covers/preview.html` 预览页。
 - 引入 [AGENTS.md](AGENTS.md)（《真相局》项目协作说明书）作为唯一事实源：技术栈、A/B/C 分工、7 页面、数据模型、API 契约、Mock-first 策略与时间节奏。
 - 新增 `docs/product.md`、`docs/game-flow.md`、`docs/api.md`、`docs/demo-script.md`。
 - 新增 `docs/architecture.md`：技术栈、Mock-first、端口代理、模块边界展开。
