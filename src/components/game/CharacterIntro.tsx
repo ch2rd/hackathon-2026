@@ -1,7 +1,7 @@
 import type { Character } from '../../types/models';
-import { CharacterSprite } from './CharacterSprite';
+import { CharacterPortrait } from '../character/CharacterPortrait';
 import { SceneBackdrop } from './SceneBackdrop';
-import { resolveMemoryFilter, resolveSpriteRole, type SceneKey } from './visuals';
+import { resolveMemoryFilter, type SceneKey } from './visuals';
 
 /**
  * 出场声明动画（B 的 game 组件）。
@@ -18,7 +18,6 @@ interface CharacterIntroProps {
 }
 
 export function CharacterIntro({ character, scene, onEnter }: CharacterIntroProps) {
-  const role = resolveSpriteRole(character.identity);
   const memory = resolveMemoryFilter(character.identity);
 
   return (
@@ -45,11 +44,11 @@ export function CharacterIntro({ character, scene, onEnter }: CharacterIntroProp
           {character.identity} · {character.age} 岁
         </p>
 
-        <div className="h-44 w-24 md:h-60 md:w-32">
-          <CharacterSprite
-            role={role}
-            name={character.name}
-            className="h-full w-full drop-shadow-[0_0_24px_rgba(0,0,0,0.7)]"
+        <div className="h-44 w-36 md:h-60 md:w-44">
+          <CharacterPortrait
+            character={character}
+            size="lg"
+            className="h-full w-full"
           />
         </div>
 
