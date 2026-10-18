@@ -2,6 +2,7 @@ import { Lock } from 'lucide-react';
 import type { CharacterPublic } from '../../types/models';
 import { Card } from '../ui/Card';
 import { Tag } from '../ui/Tag';
+import { CharacterPortrait } from './CharacterPortrait';
 
 interface CharacterSheetProps {
   character: CharacterPublic;
@@ -16,9 +17,7 @@ export function CharacterSheet({ character, secret, goals }: CharacterSheetProps
     <Card className="p-6 md:p-8">
       <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
         <div className="flex items-start gap-5">
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-gold/40 bg-gradient-to-br from-gold/20 to-crimson/10 font-display text-2xl text-gold">
-            {character.name.slice(0, 1)}
-          </div>
+          <CharacterPortrait character={character} size="lg" />
           <div>
             <h1 className="font-display text-3xl text-paper">{character.name}</h1>
             <p className="mt-2 text-sm tracking-[0.2em] text-gold/80">{character.identity}</p>

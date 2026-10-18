@@ -13,3 +13,46 @@ body {
     radial-gradient(circle at 100% 100%, rgba(142, 31, 47, 0.12), transparent 30%);
   background-attachment: fixed;
 }
+/* ---------- 动态角色画像 ---------- */
+@keyframes portrait-breathe {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(1.5px); }
+}
+
+@keyframes portrait-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  94%, 96% { transform: scaleY(0.08); }
+}
+
+@keyframes portrait-hair {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(0.8deg); }
+}
+
+@keyframes portrait-glow {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes portrait-flicker {
+  0%, 100% { opacity: 0.55; }
+  45% { opacity: 0.85; }
+  50% { opacity: 0.35; }
+  55% { opacity: 0.8; }
+}
+
+.portrait-breathe { animation: portrait-breathe 7s ease-in-out infinite; transform-origin: center bottom; }
+.portrait-blink { animation: portrait-blink 6.5s ease-in-out infinite; }
+.portrait-hair { animation: portrait-hair 9s ease-in-out infinite; transform-origin: center top; }
+.portrait-glow { animation: portrait-glow 5s ease-in-out infinite; }
+.portrait-flicker { animation: portrait-flicker 2.8s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .portrait-breathe,
+  .portrait-blink,
+  .portrait-hair,
+  .portrait-glow,
+  .portrait-flicker {
+    animation: none;
+  }
+}
