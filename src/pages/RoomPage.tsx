@@ -38,12 +38,16 @@ export function RoomPage() {
   const [isJoining, setIsJoining] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
 
-  // 进入页面：本地身份能对上房间就恢复并开轮询；卸载时清理定时器（§3.3）
+  // 进入页面：冷启动才从 localStorage 恢复身份；页面跳转保留本标签页已注入的身份
+  // （多标签页演示时 localStorage 是共享的，后加入的标签会覆盖它，不能作为跳转后的依据）
   useEffect(() => {
-    const identity = loadIdentity();
-    if (!identity || !roomId || identity.roomId !== roomId) return;
+    if (!roomId) return;
     const store = useGameStore.getState();
-    store.enterRoom(identity);
+    if (store.roomId !== roomId || !store.playerId) {
+      const identity = loadIdentity();
+      if (!identity || identity.roomId !== roomId) return;
+      store.enterRoom(identity);
+    }
     void store.ensureContext();
     store.startPolling();
     return () => useGameStore.getState().stopPolling();

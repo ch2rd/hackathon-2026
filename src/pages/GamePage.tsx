@@ -41,10 +41,13 @@ export function GamePage() {
   const [aiError, setAiError] = useState<string | null>(null);
 
   useEffect(() => {
-    const identity = loadIdentity();
-    if (!identity || !roomId || identity.roomId !== roomId) return;
+    if (!roomId) return;
     const store = useGameStore.getState();
-    store.enterRoom(identity);
+    if (store.roomId !== roomId || !store.playerId) {
+      const identity = loadIdentity();
+      if (!identity || identity.roomId !== roomId) return;
+      store.enterRoom(identity);
+    }
     void store.ensureContext();
     store.startPolling();
     return () => useGameStore.getState().stopPolling();
