@@ -190,3 +190,34 @@ export interface AIHint {
   disclaimer: string;
   source: 'llm' | 'mock';
 }
+
+// ---------- 剧本包：data/scripts/*.json 的文件格式（C 维护）----------
+
+/**
+ * 剧本元信息 = ScriptSummary + 详情 + 凶手 + 创建时间。
+ *
+ * 与 §4.2 的 `Script` 的唯一差别：`murdererCharacterId` 允许为 null，
+ * 表示「剧本卡片已上线、但正文数据还没录入」。一旦 `characters` 非空，
+ * 校验器就强制要求它是某个角色的 id（见 docs/script-format.md）。
+ */
+export interface ScriptMeta extends ScriptSummary {
+  description: string;
+  murdererCharacterId: string | null;
+  createdAt: string;
+}
+
+/**
+ * 一个剧本的完整数据包，对应 `data/scripts/<scriptId>.json`。
+ *
+ * **后端（Prisma seed）与前端 Mock 适配器读的是同一份文件**，
+ * 所以新增剧本 = 往 `data/scripts/` 丢一个 JSON，不需要改任何代码。
+ *
+ * 「可玩」由数据决定：characters / acts / clues 齐全且 murdererCharacterId 非空。
+ * 缺数据的剧本仍可在剧本库展示，详情页标注「即将开放」。
+ */
+export interface ScriptBundle {
+  script: ScriptMeta;
+  characters: Character[];
+  acts: ScriptAct[];
+  clues: Clue[];
+}

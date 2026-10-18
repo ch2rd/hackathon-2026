@@ -1,0 +1,25 @@
+{
+  "script": {
+    "id": "script_shilou",
+    "title": "石楼童谣",
+    "subtitle": "孩子唱到第七遍，走廊尽头就会有人应声",
+    "coverUrl": "/covers/shilou-lullaby.svg",
+    "genre": "恐怖",
+    "playerCount": 6,
+    "durationMinutes": 100,
+    "difficulty": 4,
+    "summary": "废弃宿舍楼里的一段录音，把六个人重新叫回了那个不该再被提起的夏天。",
+    "tags": [
+      "恐怖",
+      "还原",
+      "民俗",
+      "6 人本"
+    ],
+    "description": "「石楼童谣」围绕一段被反复删除的录音展开。六个人在二十年后的雨夜重回废弃的女生宿舍楼，只为确认一件事：当年那首被唱到第七遍的童谣，到底是谁在走廊尽头应声。楼里的水渍会沿着墙往上爬，镜子里的走廊会多出一扇门。你们越想尽快走出去，越发现自己记得的夏天各有不同的版本——而所有版本里都少了一个人。预计 6 人开局，建议在灯光充足的环境游玩。",
+    "murdererCharacterId": null,
+    "createdAt": "2026-10-18T00:00:00.000Z"
+  },
+  "characters": [],
+  "acts": [],
+  "clues": []
+}

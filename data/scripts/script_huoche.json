@@ -1,0 +1,26 @@
+{
+  "script": {
+    "id": "script_huoche",
+    "title": "末班列车",
+    "subtitle": "车厢里的每一个人，都买了两张票",
+    "coverUrl": "/covers/huoche-last-train.svg",
+    "genre": "硬核",
+    "playerCount": 5,
+    "durationMinutes": 135,
+    "difficulty": 5,
+    "summary": "一列永不到站的夜行列车，五份互相咬合的证词，和一条被反复改写的时刻表。",
+    "tags": [
+      "硬核",
+      "叙诡",
+      "时间线",
+      "5 人本",
+      "烧脑"
+    ],
+    "description": "「末班列车」发生在一列永远不到站的卧铺车厢里。五名乘客各自持一张写着两个名字的车票，却在凌晨三点发现列车停在了同一个站台第八次。时刻表每一轮循环都会被改动一格，改动它的人就藏在你们中间。你要做的不是逃出去，而是算清楚：这趟车究竟为谁多停了七次。典型的硬核叙诡本，预计 5 人开局，需要耐心与纸笔。",
+    "murdererCharacterId": null,
+    "createdAt": "2026-10-18T00:00:00.000Z"
+  },
+  "characters": [],
+  "acts": [],
+  "clues": []
+}
