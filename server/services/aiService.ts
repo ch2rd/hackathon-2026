@@ -63,7 +63,13 @@ export async function generateHint(roomId: string, playerId: string): Promise<AI
   ].join('\n');
 
   try {
-    const client = new OpenAI({ apiKey, timeout: AI_TIMEOUT_MS, maxRetries: 0 });
+    const client = new OpenAI({
+      apiKey,
+      timeout: AI_TIMEOUT_MS,
+      maxRetries: 0,
+      // 支持走代理 / 兼容网关；留空则用官方默认地址
+      baseURL: process.env.OPENAI_BASE_URL?.trim() || undefined,
+    });
     const completion = await client.chat.completions.create({
       model: process.env.OPENAI_MODEL ?? 'gpt-4o-mini',
       temperature: 0.4,
