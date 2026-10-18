@@ -214,15 +214,51 @@ async function main(): Promise<void> {
     data(allReady).room,
   );
 
-  // ---------- 8) 一路推进到投票（幕数由剧本数据决定，这里只看状态）----------
+  // ---------- 8) 一路推进到投票 ----------
+  //
+  // `playing` 内部还有一层子阶段（reading → introduction → search → discussion），
+  // 每幕推进要看当前处在哪一阶段：reading 要全员确认已读个人故事，discussion 要全员确认
+  // 讨论完毕，其余阶段由房主推进。这里**按状态决定动作**而不是写死动作序列——
+  // 流程以后再改，脚本只会如实报出卡在哪一步，不会假装通过。
+  const playerIds = [hostId, p2Id, p3Id];
   let current = allReady;
   let guard = 0;
-  while ((data(current).room as Json)?.status === 'playing' && guard < 50) {
-    current = await post(`/api/rooms/${roomId}/next-act`, { playerId: hostId });
+  const phaseTrail: string[] = [];
+
+  while ((data(current).room as Json)?.status === 'playing' && guard < 40) {
+    const roomNow = data(current).room as Json;
+    const phase = String(roomNow?.gameplayPhase ?? 'unknown');
+    phaseTrail.push(phase);
     guard += 1;
+
+    if (phase === 'reading') {
+      // 全员确认已读；全部确认后后端会自动转入 introduction
+      for (const playerId of playerIds) {
+        current = await post(`/api/rooms/${roomId}/confirm-story-read`, { playerId });
+      }
+      continue;
+    }
+
+    if (phase === 'discussion') {
+      // 讨论收尾：全员标记完成，再由房主推进到下一幕（或投票）
+      for (const playerId of playerIds) {
+        current = await post(`/api/rooms/${roomId}/ready`, { playerId, isReady: true });
+      }
+      current = await post(`/api/rooms/${roomId}/next-act`, { playerId: hostId });
+      continue;
+    }
+
+    // introduction / search：房主推进
+    current = await post(`/api/rooms/${roomId}/next-act`, { playerId: hostId });
   }
-  check('推进若干幕后进入 voting', (data(current).room as Json)?.status === 'voting', data(current).room);
-  check('推进过程没有死循环', guard < 50, guard);
+
+  check('推进若干幕后进入 voting', (data(current).room as Json)?.status === 'voting', {
+    status: (data(current).room as Json)?.status,
+    gameplayPhase: (data(current).room as Json)?.gameplayPhase,
+    推进步数: guard,
+    阶段轨迹: phaseTrail.join(' → '),
+  });
+  check('推进过程没有死循环', guard < 40, guard);
   check('揭晓前不下发凶手', !JSON.stringify(current.body).includes('murdererCharacterId'));
 
   // ---------- 9) 投票与结算 ----------
