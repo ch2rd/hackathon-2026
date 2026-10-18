@@ -44,25 +44,25 @@
           <p class="intro">让风雨、回声与灯影，先于故事抵达。</p>
         </div>
         <div class="controls">
-          <a href="/scripts">进入剧本库 ↗</a>
+          <a href="../scripts" id="script-library-link">进入剧本库 ↗</a>
           <button type="button" id="motion-toggle" aria-pressed="false">暂停动效</button>
         </div>
       </header>
       <section class="gallery" aria-label="四个剧本的动态封面">
         <article>
-          <div class="art"><img src="/covers/wuye-manor.svg" data-cover="wuye-manor" alt="风雨与薄雾笼罩的庄园钟楼" /><span class="case">CASE 01 / THE MANOR</span></div>
+          <div class="art"><img src="./wuye-manor.svg" data-cover="wuye-manor" alt="风雨与薄雾笼罩的庄园钟楼" /><span class="case">CASE 01 / THE MANOR</span></div>
           <div class="caption"><div class="caption-top"><h2>雾夜庄园</h2><span class="genre">推理</span></div><p>雾经过铁门，雨打向钟楼。天亮前，谁还醒着。</p></div>
         </article>
         <article>
-          <div class="art"><img src="/covers/huoche-last-train.svg" data-cover="huoche-last-train" alt="雨夜旧站台上的末班列车与三点十七分的挂钟" /><span class="case">CASE 02 / THE LAST TRAIN</span></div>
+          <div class="art"><img src="./huoche-last-train.svg" data-cover="huoche-last-train" alt="雨夜旧站台上的末班列车与三点十七分的挂钟" /><span class="case">CASE 02 / THE LAST TRAIN</span></div>
           <div class="caption"><div class="caption-top"><h2>末班列车</h2><span class="genre">硬核</span></div><p>信号灯再次亮起，站台上的时间仍是三点十七分。</p></div>
         </article>
         <article>
-          <div class="art"><img src="/covers/shenhai-echo.svg" data-cover="shenhai-echo" alt="深蓝海水中的旧科考站、探照灯和浮游颗粒" /><span class="case">CASE 03 / THE DEEP ECHO</span></div>
+          <div class="art"><img src="./shenhai-echo.svg" data-cover="shenhai-echo" alt="深蓝海水中的旧科考站、探照灯和浮游颗粒" /><span class="case">CASE 03 / THE DEEP ECHO</span></div>
           <div class="caption"><div class="caption-top"><h2>深海回音</h2><span class="genre">情感</span></div><p>三千二百米之下，那束灯光还在等待一个回应。</p></div>
         </article>
         <article>
-          <div class="art"><img src="/covers/shilou-lullaby.svg" data-cover="shilou-lullaby" alt="旧石楼的潮湿长廊、录音机与昏暗灯影" /><span class="case">CASE 04 / THE LULLABY</span></div>
+          <div class="art"><img src="./shilou-lullaby.svg" data-cover="shilou-lullaby" alt="旧石楼的潮湿长廊、录音机与昏暗灯影" /><span class="case">CASE 04 / THE LULLABY</span></div>
           <div class="caption"><div class="caption-top"><h2>石楼童谣</h2><span class="genre">恐怖</span></div><p>天井的水一圈圈散开，录音机又转过了一遍。</p></div>
         </article>
       </section>
@@ -71,9 +71,15 @@
     <script>
       const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
       const toggle = document.getElementById('motion-toggle');
+      const appRoot = new URL('../', window.location.href);
+      const usesHashRouter = appRoot.pathname !== '/' || window.location.hostname.endsWith('.github.io');
+      document.getElementById('script-library-link').href = new URL(
+        usesHashRouter ? '#/scripts' : 'scripts',
+        appRoot,
+      ).href;
       function setPaused(paused) {
         document.querySelectorAll('[data-cover]').forEach((image) => {
-          image.src = `/covers/${image.dataset.cover}${paused ? '.poster' : ''}.svg`;
+          image.src = `./${image.dataset.cover}${paused ? '.poster' : ''}.svg`;
         });
         toggle.setAttribute('aria-pressed', String(paused));
         toggle.textContent = paused ? '播放动效' : '暂停动效';

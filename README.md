@@ -163,6 +163,12 @@ npm run dev:web -- --host 0.0.0.0
 
 `VITE_USE_MOCK=true` 适用于同一浏览器多标签页演示；不同电脑的 localStorage 相互独立，Mock 模式无法共享同一个房间。
 
+### 3.9 在线预览
+
+组员通过线上网址查看时，需要功能 PR 合入 `main` 并完成 GitHub Pages 发布；仅推送功能分支不会更新网站。仓库 owner 首次需在 Settings → Pages 选择 GitHub Actions，具体步骤与失败排查见 [GitHub Pages 预览](docs/github-preview.md)。
+
+Pages 提供包含个人故事、公私聊流程及动态封面的 Mock 演示。不同电脑的房间数据相互独立；跨设备同房联机需要另行部署 Express 后端。
+
 ## 四、技术栈
 
 | 层 | 选型 |
