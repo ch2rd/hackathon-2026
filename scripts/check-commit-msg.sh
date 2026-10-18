@@ -109,7 +109,8 @@ esac
 
 printf '\n提交信息校验：不合规 %s 条\n' "$FAIL"
 if [ "$FAIL" -gt 0 ]; then
-  printf '请在本地执行：gid="$(git rev-parse HEAD)" && git commit --amend，或改用 git rebase -i 修正历史。\n'
+  printf '修正方式：git commit --amend -m "<类型>(<范围>): <说明>"；涉及多个提交时用 git rebase -i 修改。\n'
+  printf '本地自查：bash scripts/check-commit-msg.sh --range HEAD\n'
   exit 1
 fi
 printf '全部合规。\n'
