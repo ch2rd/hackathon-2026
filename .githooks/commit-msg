@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+# commit-msg 钩子：校验提交信息是否符合 Conventional Commits
+# 安装：bash scripts/install-hooks.sh
+set -u
+
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+exec bash "$ROOT/scripts/check-commit-msg.sh" --file "$1"

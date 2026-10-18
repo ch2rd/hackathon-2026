@@ -1,0 +1,52 @@
+#!/usr/bin/env sh
+# pre-commit 钩子：提交前拦截密钥、.env 与超大文件
+# 安装：bash scripts/install-hooks.sh
+# 说明：只做快速拦截，完整检查请跑 bash scripts/verify.sh
+set -u
+
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$ROOT" || exit 0
+
+STAGED="$(git diff --cached --name-only --diff-filter=ACM)"
+[ -n "$STAGED" ] || exit 0
+
+STATUS=0
+
+# 1. 拦截 .env 与常见凭据文件
+for f in $STAGED; do
+  case "$(basename "$f")" in
+    .env|.env.local|.env.production|*.pem|*.key|*.p12|id_rsa|id_ed25519|credentials.json|service-account*.json)
+      printf '\033[31m[pre-commit] 拒绝提交疑似凭据文件：%s\033[0m\n' "$f"
+      printf '            如确属必须，请改用环境变量，或把该文件加入 .gitignore。\n'
+      STATUS=1
+      ;;
+  esac
+done
+
+# 2. 扫描暂存内容中的密钥特征
+STAGED_TEXT="$STAGED"
+for f in $STAGED_TEXT; do
+  [ -f "$f" ] || continue
+  case "$f" in scripts/check-repo.sh|.githooks/*) continue ;; esac
+  if git show ":$f" 2>/dev/null | LC_ALL=C grep -qIE 'AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|ghp_[A-Za-z0-9]{36}|sk-[A-Za-z0-9]{20,}'; then
+    printf '\033[31m[pre-commit] 文件 %s 命中疑似密钥特征，已阻止提交。\033[0m\n' "$f"
+    printf '            请移除密钥、轮换该凭据，并确认历史提交中不含它。\n'
+    STATUS=1
+  fi
+done
+
+# 3. 拦截超过 5 MiB 的文件
+for f in $STAGED; do
+  [ -f "$f" ] || continue
+  s="$(stat -c%s "$f" 2>/dev/null || stat -f%z "$f" 2>/dev/null || echo 0)"
+  if [ "$s" -gt $((5 * 1024 * 1024)) ]; then
+    printf '\033[31m[pre-commit] 文件 %s 体积 %s MiB，超过 5 MiB 上限。\033[0m\n' "$f" "$((s / 1024 / 1024))"
+    printf '            请改用 Git LFS 或提供外部下载链接。\n'
+    STATUS=1
+  fi
+done
+
+if [ "$STATUS" -ne 0 ]; then
+  printf '\n提示：确实需要绕过时用 git commit --no-verify，但请在 PR 里说明原因。\n'
+fi
+exit "$STATUS"

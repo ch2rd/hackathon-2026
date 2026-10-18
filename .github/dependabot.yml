@@ -1,0 +1,33 @@
+version: 2
+updates:
+  # GitHub Actions 依赖：保持工作流里的 action 版本不过期
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "ci"
+    labels:
+      - dependencies
+      - ci
+
+  # 说明：本项目骨架不绑定技术栈，因此这里只配置 Actions。
+  # 选定技术栈后，按需放开对应的生态配置（去掉注释并核对目录）：
+  #
+  # - package-ecosystem: npm
+  #   directory: /
+  #   schedule: { interval: weekly }
+  #   commit-message: { prefix: "build" }
+  #   labels: [dependencies]
+  #
+  # - package-ecosystem: pip
+  #   directory: /
+  #   schedule: { interval: weekly }
+  #   commit-message: { prefix: "build" }
+  #   labels: [dependencies]
+  #
+  # - package-ecosystem: gomod
+  #   directory: /
+  #   schedule: { interval: weekly }
