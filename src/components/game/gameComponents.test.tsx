@@ -1,8 +1,9 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import type { AIHint, CharacterPublic, Clue, PublicPlayer } from '../../types/models';
+import type { AIHint, Character, CharacterPublic, Clue, PublicPlayer } from '../../types/models';
 import { AIHintCard } from './AIHintCard';
 import { CharacterGrid } from './CharacterGrid';
+import { CharacterIntro } from './CharacterIntro';
 import { ClueList } from './ClueList';
 import { DemoAdvanceButton } from './DemoAdvanceButton';
 import { PlayerList } from './PlayerList';
@@ -147,5 +148,23 @@ describe('AIHintCard', () => {
   it('请求失败显示降级提示且不阻塞（无凶信息泄露）', () => {
     render(<AIHintCard hint={null} isLoading={false} error="AI 服务超时" canAsk onAsk={vi.fn()} />);
     expect(screen.getByText(/AI 服务超时.*不影响你继续投票/)).toBeInTheDocument();
+  });
+});
+
+describe('CharacterIntro', () => {
+  const character: Character = {
+    id: 'c1', scriptId: 's1', name: '管家', identity: '庄园管家', age: 45,
+    avatarUrl: '', publicIntro: '老成持重', secret: '我挪用了庄园的账。',
+    goals: ['掩盖账目问题'], sortOrder: 1,
+  };
+
+  it('渲染身份信息与本人秘密，点「进入现场」触发回调', () => {
+    const onEnter = vi.fn();
+    render(<CharacterIntro character={character} scene="night" onEnter={onEnter} />);
+    expect(screen.getByRole('heading', { name: '管家' })).toBeInTheDocument();
+    expect(screen.getByText(/庄园管家/)).toBeInTheDocument();
+    expect(screen.getByText('我挪用了庄园的账。')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '进入现场' }));
+    expect(onEnter).toHaveBeenCalledTimes(1);
   });
 });

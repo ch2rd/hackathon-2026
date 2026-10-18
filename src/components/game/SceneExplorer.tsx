@@ -9,6 +9,8 @@ interface SceneExplorerProps {
   clues: Clue[];
   discoveredIds: Set<string>;
   onDiscover: (clue: Clue) => void;
+  /** 回忆滤镜（CSS filter 字符串，来自 visuals.resolveMemoryFilter）；不传则原色 */
+  memory?: string;
 }
 
 const hotspots = [
@@ -18,7 +20,7 @@ const hotspots = [
   { id: 'window', label: '钟楼窗', icon: KeyRound, position: 'right-[13%] top-[20%]', tone: 'crimson' },
 ] as const;
 
-export function SceneExplorer({ clues, discoveredIds, onDiscover }: SceneExplorerProps) {
+export function SceneExplorer({ clues, discoveredIds, onDiscover, memory }: SceneExplorerProps) {
   const [activeClue, setActiveClue] = useState<Clue | null>(null);
   const [emptySpot, setEmptySpot] = useState<string | null>(null);
 
@@ -54,7 +56,7 @@ export function SceneExplorer({ clues, discoveredIds, onDiscover }: SceneExplore
         </div>
       </header>
 
-      <div className="relative aspect-[16/9] overflow-hidden">
+      <div className="relative aspect-[16/9] overflow-hidden" style={memory ? { filter: memory } : undefined}>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(200,169,106,0.14),transparent_34%),radial-gradient(circle_at_82%_72%,rgba(142,31,47,0.13),transparent_38%)]" />
         <div className="absolute inset-0 opacity-[0.16] [background-image:repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(255,255,255,0.08)_3px)]" />
 

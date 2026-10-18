@@ -11,10 +11,12 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getAIHint } from '../api/ai';
 import { isDemoMode } from '../api/client';
 import { AIHintCard } from '../components/game/AIHintCard';
+import { CharacterIntro } from '../components/game/CharacterIntro';
 import { ClueList } from '../components/game/ClueList';
 import { DemoAdvanceButton } from '../components/game/DemoAdvanceButton';
 import { SceneExplorer } from '../components/game/SceneExplorer';
 import { VotePanel } from '../components/game/VotePanel';
+import { resolveActScene, resolveMemoryFilter } from '../components/game/visuals';
 import {
   canDemoAdvance,
   canNextAct,
@@ -42,6 +44,8 @@ export function GamePage() {
   const [isAskingAI, setIsAskingAI] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [discoveredClueIds, setDiscoveredClueIds] = useState<Set<string>>(new Set());
+  // 出场声明动画是否已看完（进入 playing 后先播一次）
+  const [introDone, setIntroDone] = useState(false);
 
   useEffect(() => {
     if (!roomId) return;
@@ -105,6 +109,11 @@ export function GamePage() {
   const meReady = roomState.me.player.isReady;
   const finalAct = context ? isFinalAct(roomState, context) : false;
   const discoveredClues = roomState?.me.visibleClues.filter((clue) => discoveredClueIds.has(clue.id)) ?? [];
+  const myCharacter = roomState.me.character;
+  // 回忆滤镜：每个角色的画面观感都不同
+  const memory = myCharacter ? resolveMemoryFilter(myCharacter.identity).filter : undefined;
+  // 出场声明动画只在「playing + 有本人角色 + 还没看完」时播
+  const showIntro = roomStatus === 'playing' && !introDone && myCharacter !== null;
 
   return (
     <section className="mx-auto flex max-w-3xl flex-col gap-5 p-6">
@@ -130,6 +139,15 @@ export function GamePage() {
       )}
       {status !== 'offline' && error && (
         <div className="rounded-md border border-amber-900 bg-amber-950 p-3 text-sm text-amber-200">{error.message}</div>
+      )}
+
+      {/* 出场声明动画：进入 playing 后先播一次，看完才进入房间探索 */}
+      {showIntro && myCharacter && (
+        <CharacterIntro
+          character={myCharacter}
+          scene={resolveActScene(roomState.room.currentAct)}
+          onEnter={() => setIntroDone(true)}
+        />
       )}
 
       {roomStatus === 'playing' && (
@@ -175,6 +193,7 @@ export function GamePage() {
           <SceneExplorer
             clues={roomState.me.visibleClues}
             discoveredIds={discoveredClueIds}
+            memory={memory}
             onDiscover={(clue) =>
               setDiscoveredClueIds((current) => {
                 const next = new Set(current);
