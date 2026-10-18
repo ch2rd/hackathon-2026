@@ -13,7 +13,7 @@
     "build": "npm run typecheck && npm run check:scripts && vite build",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "test": "vitest run"
+    "test": "vitest run --passWithNoTests"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

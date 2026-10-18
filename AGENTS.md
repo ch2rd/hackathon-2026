@@ -798,7 +798,7 @@ team-ai-project/
 │   ├── schema.prisma            # C
 │   └── seed.ts                  # C
 └── data/
-    └── scripts.json             # C（种子数据源）
+    └── scripts/                 # C（剧本数据源：一个剧本一个 JSON，见 docs/script-format.md）
 ```
 
 禁止事项：
@@ -1084,6 +1084,7 @@ chore: 配置 Tailwind
 | 日期 | 修改人 | 内容 |
 | --- | --- | --- |
 | 2026-10-18 | 全员 | 初版：从通用模板改为《真相局》剧本杀项目，明确 A/B/C 分工、7 页面、数据模型、API 契约、Mock-first 策略 |
+| 2026-10-18 | C | 剧本数据源改为 `data/scripts/*.json`（一剧本一文件，新增剧本零代码改动）；新增 `GET /api/rooms/:roomId/context`；拆出 `src/mocks/mockEngine.ts`（纯规则，与存储解耦）。**以上变更待 A/B 确认** |
 
 ---
 

@@ -95,12 +95,49 @@ export interface ListResult<T> {
 - 8 秒超时；失败/无 Key 时返回 `source: "mock"` 的确定性结果。
 - 服务端用 Zod 校验模型输出；解析失败也走 Mock。
 
-## 六、变更流程（AGENTS.md §3.6）
+## 六、房间剧本上下文（本次新增，待 A/B 确认）
+
+```text
+GET /api/rooms/:roomId/context?playerId=
+```
+
+**为什么新增**：§5.3 冻结的接口表里，`GET /api/scripts/:scriptId` 不含幕与线索，
+`GET /api/rooms/:roomId/state` 只给「当前幕 + 当前玩家可见线索」。
+而 B 的 `src/game/stateMachine.ts` 里 `GameContext` 需要**全部幕 / 全部线索**
+才能算可见性与结局（其注释写明「由 src/api 提供」）。所以补了这个口子。
+
+响应：
+
+```json
+{
+  "data": {
+    "acts": [],
+    "characters": [],
+    "clues": [],
+    "murdererCharacterId": null
+  }
+}
+```
+
+硬性要求：
+
+- `clues` 只返回「公开线索 + 当前玩家自己的私密线索」，**别人的私密线索一律不下发**；
+- `murdererCharacterId` **真实模式恒为 `null`**，结局揭晓前绝不下发；Mock 模式才给值；
+- 结构与 `GameContext` 兼容，B 可以直接赋值使用。
+
+对应前端函数：`getRoomContext(roomId, playerId)`（`src/api/rooms.ts`）。
+
+## 七、变更流程（AGENTS.md §3.6）
 
 冻结后确需变更：C 群里发说明 → A/B 确认 → 更新本文件 + `src/types` → 再改代码。
 
-## 七、待办
+## 八、待办
 
-- [ ] T+30 冻结：把本表 P0 字段/路径最终确认
-- [ ] `src/types/models.ts`、`src/types/api.ts` 落地
-- [ ] Mock 与真实接口签名对齐
+- [x] T+30 冻结：P0 字段 / 路径确认（见第三节）
+- [x] `src/types/models.ts`、`src/types/api.ts` 落地
+- [x] Mock 与真实接口签名对齐（同一份 `ApiAdapter`，由 typecheck 强制）
+- [x] `GET /api/rooms/:roomId/context` 登记（见第六节）
+- [x] 剧本数据源统一为 `data/scripts/*.json`（见 [script-format.md](script-format.md)）
+- [ ] Express 路由 + 服务层（真实模式）
+- [ ] `prisma/schema.prisma` 建模；`prisma/seed.ts` 读 `data/scripts/`
+- [ ] `POST /api/ai/hint` 接 OpenAI，8 秒超时降级 Mock
