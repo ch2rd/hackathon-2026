@@ -21,9 +21,12 @@ const genreClasses: Record<Genre, string> = {
 export function ScriptCover({ title, genre, coverUrl, priority = false, className }: ScriptCoverProps) {
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
   const hasArtwork = Boolean(coverUrl && coverUrl !== failedUrl);
-  const stillUrl = coverUrl?.startsWith('/covers/') && coverUrl.endsWith('.svg')
-    ? coverUrl.replace(/\.svg$/, '.poster.svg')
+  const artworkUrl = coverUrl?.startsWith('/covers/')
+    ? `${import.meta.env.BASE_URL}${coverUrl.slice(1)}`
     : coverUrl;
+  const stillUrl = coverUrl?.startsWith('/covers/') && artworkUrl?.endsWith('.svg')
+    ? artworkUrl.replace(/\.svg$/, '.poster.svg')
+    : artworkUrl;
 
   return (
     <div className={cn('relative isolate overflow-hidden rounded-xl bg-gradient-to-br', genreClasses[genre], className)}>
@@ -35,7 +38,7 @@ export function ScriptCover({ title, genre, coverUrl, priority = false, classNam
         <picture>
           <source media="(prefers-reduced-motion: reduce)" srcSet={stillUrl} />
           <img
-            src={coverUrl}
+            src={artworkUrl}
             alt={`${title}的故事场景封面`}
             loading={priority ? 'eager' : 'lazy'}
             decoding="async"

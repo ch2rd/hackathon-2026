@@ -28,7 +28,7 @@ function WhaleMascot({ className }: { className?: string }) {
 }
 
 /** 用户提供的卡通形象：public/ai-mascot.jpg，加载失败时回退鲸鱼占位。 */
-const MASCOT_SRC = '/ai-mascot.jpg';
+const MASCOT_SRC = `${import.meta.env.BASE_URL}ai-mascot.jpg`;
 
 export function AiFloatingAssistant() {
   const [open, setOpen] = useState(false);
