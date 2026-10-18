@@ -1,4 +1,5 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, createHashRouter } from 'react-router-dom';
+import type { RouteObject } from 'react-router-dom';
 import GameLayout from './layouts/GameLayout';
 import MainLayout from './layouts/MainLayout';
 import CharacterPage from './pages/CharacterPage';
@@ -10,7 +11,7 @@ import ScriptDetailPage from './pages/ScriptDetailPage';
 import ScriptLibraryPage from './pages/ScriptLibraryPage';
 import { PagePlaceholder } from './components/ui/PagePlaceholder';
 
-export const router = createBrowserRouter([
+const routes: RouteObject[] = [
   {
     element: <MainLayout />,
     children: [
@@ -68,4 +69,9 @@ export const router = createBrowserRouter([
       />
     ),
   },
-]);
+];
+
+export const router =
+  import.meta.env.VITE_ROUTER_MODE === 'hash'
+    ? createHashRouter(routes)
+    : createBrowserRouter(routes);
