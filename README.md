@@ -28,7 +28,8 @@
 
 ## 三、快速开始
 
-> 环境要求：Node.js ≥ 20、npm ≥ 10。
+> 环境要求：Node.js ≥ 22、npm ≥ 10。（`check:scripts` / `smoke:api` 依赖
+> `--experimental-strip-types`，Node 22.6 起才有；跑前端和后端本身 20 就够。）
 
 ```bash
 # 1. 克隆
@@ -97,6 +98,7 @@ npm run dev
 | `npm run dev:api` | 只起后端（3001） |
 | `npm run typecheck` | 三份 tsconfig 全量类型检查 |
 | `npm run check:scripts` | 校验 `data/scripts/*.json` |
+| `npm run smoke:api` | 真实后端端到端验收（先起 `dev:api`，走完一整局） |
 | `npm test` | vitest 回归测试（剧本数据 + 全流程状态机） |
 | `npm run build` | 类型检查 + 剧本校验 + 打包 |
 

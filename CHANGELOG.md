@@ -14,6 +14,16 @@
 - 引入 [AGENTS.md](AGENTS.md)（《真相局》项目协作说明书）作为唯一事实源：技术栈、A/B/C 分工、7 页面、数据模型、API 契约、Mock-first 策略与时间节奏。
 - 新增 `docs/product.md`、`docs/game-flow.md`、`docs/api.md`、`docs/demo-script.md`。
 - 新增 `docs/architecture.md`：技术栈、Mock-first、端口代理、模块边界展开。
+- **共享类型与 API 契约**：`src/types/models.ts`、`src/types/api.ts`、`src/api/`（`ApiAdapter` + Mock/HTTP 双实现 + 统一 `ApiError`）。
+- **Mock 适配器**：`localStorage` 持久化房间/玩家/投票，不启后端即可完整走通一局，多标签页可同屏演示。
+- **真实后端**：`server/` 分 routes / services / store / middleware 四层，AGENTS.md §5 的 P0 端点全部实装。
+- **剧本数据管线**：`data/scripts/*.json` 为唯一数据源，前后端读同一批文件；新增剧本零代码改动。
+- **剧本校验器**：`src/utils/scriptSchema.ts` + `npm run check:scripts`，坏数据在构建期就被拦下。
+- **AI 推理助手**：`POST /api/ai/hint` 接 OpenAI，8 秒超时，无 Key / 超时 / 结构不合规一律降级为确定性结果。
+- **回归测试**：`tests/mockEngine.test.ts`，对每一本剧本跑完整对局，并校验敏感字段不外泄。
+- **真实后端验收脚本**：`npm run smoke:api`，一条命令走完建房→加入→选角→开局→推进→投票→结算。
+- **四本可玩剧本**：雾夜庄园、深海回音、石楼童谣、末班列车，全部满足「每个角色至少一条私密线索」。
+- 新增 `docs/script-format.md`：剧本数据填写规范与当前清单。
 
 ### 变更
 
@@ -21,10 +31,21 @@
 - `CONTRIBUTING.md` 分支模型对齐 AGENTS.md：`feat/a-ui`、`feat/b-game`、`feat/c-backend`，改为 30 分钟 commit / 2 小时集成。
 - `README.md`、`.env.example`、`src/README.md` 对齐《真相局》技术栈与 Mock-first 策略。
 - 仓库自检脚本 `scripts/check-repo.sh` 必需文件清单同步更新。
+- 剧本内容改为静态文件，不入库：`npm run db:push` / `db:seed` 不再是必需步骤。
+- 房间等运行时状态先落 `.data/rooms.json`（零依赖实现）；`prisma/schema.prisma` 已按 §4 建好作为迁移目标。
+- `ApiError` 下沉到 `src/utils/apiError.ts`，供后端复用而不依赖浏览器环境。
+- 状态机规则统一在 `src/mocks/mockEngine.ts`，Mock 与真实后端同源，不存在两套实现。
+
+### 安全
+
+- 剧本列表与详情不下发 `murdererCharacterId` 与 `secret`。
+- `GET /api/rooms/:roomId/context` 在真实模式下 `murdererCharacterId` 恒为 `null`，凶手只在 `ended` 状态的 `result` 里揭晓。
+- 私密线索按玩家过滤，公开玩家列表不含 `secret`。
 
 ### 修复
 
-- 无。
+- 投票平票时不再把「并列第一」当成定论（`topVotedCharacterId` 返回 `null`，`isCorrect` 为 `false`）。
+- 补《雾夜庄园》缺失的两条私密线索（林墨、白榆），使四本剧本统一满足人均一条底牌。
 
 ## [0.1.0] - 2026-10-18
 

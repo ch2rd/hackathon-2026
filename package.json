@@ -10,6 +10,7 @@
     "dev:api": "tsx watch server/index.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.test.json --noEmit",
     "check:scripts": "node --experimental-strip-types scripts/check-scripts.ts",
+    "smoke:api": "node --experimental-strip-types scripts/smoke-api.ts",
     "build": "npm run typecheck && npm run check:scripts && vite build",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
