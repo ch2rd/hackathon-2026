@@ -34,6 +34,7 @@ section "1. 竞赛标准文件"
 # ------------------------------------------------------------
 REQUIRED_FILES=(
   "README.md"
+  "AGENTS.md"
   "LICENSE"
   ".gitignore"
   ".gitattributes"
