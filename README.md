@@ -2,7 +2,7 @@
 
 > 一句话说清这个项目解决谁的什么问题。
 
-[![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/ci.yml)
+[![CI](https://github.com/ch2nd/hackathon-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/ch2nd/hackathon-2026/actions/workflows/ci.yml)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 - **参赛赛道**：待填写
@@ -30,8 +30,8 @@
 
 ```bash
 # 1. 克隆
-git clone <repo-url>
-cd 黑客松
+git clone https://github.com/ch2nd/hackathon-2026.git
+cd hackathon-2026
 
 # 2. 配置环境变量（复制后填入自己的值，切勿提交 .env）
 cp .env.example .env
@@ -79,6 +79,7 @@ make run
 - 提交前的完整检查项：见 [docs/04-提交清单.md](docs/04-提交清单.md)。
 - 评分维度逐条对应：见 [docs/03-评审对照表.md](docs/03-评审对照表.md)。
 - 演示流程：见 [docs/05-演示脚本.md](docs/05-演示脚本.md)。
+- 远程仓库与队员协作：见 [docs/07-远程仓库与协作.md](docs/07-远程仓库与协作.md)。
 
 ## 七、开源协议
 
