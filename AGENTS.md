@@ -1090,3 +1090,23 @@ chore: 配置 Tailwind
 ---
 
 > 记住：**先对齐，再并行；先跑通，再美化；先主路径，再加分项。**
+---
+
+## 附录 C：前端 Skill 组合（2026-10-18）
+
+前端任务优先使用以下 Skill，并在 Prompt 中明确要求：
+
+1. `frontend-app-builder`：从视觉概念到 React 页面实现的主力
+2. `frontend-design`：复古悬疑、手绘、非 SaaS 化视觉指导
+3. `frontend-testing-debugging`：动画、交互、响应式与视觉回归检查
+
+推荐使用顺序：
+
+```text
+frontend-app-builder + frontend-design
+  → 实现页面/场景
+  → frontend-testing-debugging
+  → 修复视觉与交互问题
+```
+
+「可探索房间」的视觉与交互方案见 `docs/interactive-room.md`。
