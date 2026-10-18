@@ -1,0 +1,15 @@
+:root {
+  --color-ink: #0b0b0f;
+  --color-surface: #15151c;
+  --color-gold: #c8a96a;
+  --color-crimson: #8e1f2f;
+  --color-paper: #f5f1e8;
+  --color-muted: #a7a29a;
+}
+
+body {
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(200, 169, 106, 0.08), transparent 35%),
+    radial-gradient(circle at 100% 100%, rgba(142, 31, 47, 0.12), transparent 30%);
+  background-attachment: fixed;
+}
