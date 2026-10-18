@@ -1,18 +1,34 @@
-# 源码目录
+# src/ 源码目录
 
-按实际技术栈在此展开。约定：
-
-- 一个模块一个子目录，目录名用小写连字符，例如 `src/voice-input/`。
-- 对外接口集中在 `src/<模块>/index.*`，便于其他模块引用。
-- 业务逻辑与框架代码分开：可测试的纯逻辑不要和 UI / 路由混在一个文件里。
-- 不要在此放构建产物、模型权重、数据集（见根目录 `.gitignore`）。
-
-典型结构示例（请按实际选型替换）：
+目录与文件 Owner 以 [AGENTS.md](../AGENTS.md) §3、§6 为准，这里只做速查。
 
 ```text
 src/
-├── app/            # 应用入口与路由
-├── modules/        # 业务模块
-├── lib/            # 通用工具与适配层
-└── types/          # 类型定义
+├── main.tsx / App.tsx / router.tsx      # A（router 第一天建好全部路由）
+├── pages/                               # A/B 分页
+│   ├── HomePage.tsx                     # A
+│   ├── ScriptLibraryPage.tsx            # A
+│   ├── ScriptDetailPage.tsx             # A
+│   ├── CharacterPage.tsx                # A（UI）
+│   ├── RoomPage.tsx                     # B
+│   ├── GamePage.tsx                     # B
+│   └── EndingPage.tsx                   # B
+├── components/
+│   ├── ui/                              # A（设计系统）
+│   ├── layout/                          # A
+│   └── game/                            # B
+├── stores/gameStore.ts                  # B（Zustand）
+├── game/stateMachine.ts, selectors.ts   # B（纯函数状态机）
+├── api/                                 # C（fetch 封装 + 适配器）
+├── mocks/                               # C（Mock 数据）
+├── types/                               # C（唯一类型来源）
+├── utils/                               # C（公共工具）
+└── styles/                              # A（theme.css 设计 token）
 ```
+
+铁律：
+
+- 所有 `fetch` 只写 `src/api`，页面里禁止直接 `fetch`。
+- 共享类型只写 `src/types`，数据模型以 AGENTS.md §4 为唯一版本。
+- 组件里不写死剧本/角色数据，一律走 API/Mock。
+- 跨区修改先问 owner，只做最小改动。

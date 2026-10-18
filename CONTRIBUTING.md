@@ -2,21 +2,24 @@
 
 本仓库按黑客松竞赛节奏设计：**能让评审看懂、能让队友接得上**，比写得多更重要。以下规则请全队遵守。
 
+> 项目事实源（技术栈、A/B/C 分工、数据模型、API 契约）见 [AGENTS.md](AGENTS.md)；
+> 本文档只约定 Git 与协作流程，冲突时以 AGENTS.md 为准。
+
 ## 一、分支模型
 
 | 分支 | 用途 | 说明 |
 | --- | --- | --- |
-| `main` | 唯一可演示分支 | 始终可运行、可演示；禁止直接 push，一律走 PR |
-| `feat/<简短描述>` | 新功能 | 例：`feat/voice-input` |
-| `fix/<简短描述>` | 缺陷修复 | 例：`fix/typo-in-readme` |
-| `docs/<简短描述>` | 文档 / 演示材料 | 例：`docs/demo-script` |
-| `chore/<简短描述>` | 构建、依赖、配置 | 例：`chore/setup-ci` |
+| `main` | 唯一可演示分支 | 始终可运行、可演示；禁止直接 push，由 C 集成 |
+| `feat/a-ui` | A 的分支 | 产品 + UI |
+| `feat/b-game` | B 的分支 | 游戏交互 + 状态机 |
+| `feat/c-backend` | C 的分支 | 后端 + 数据 + 集成 + AI |
+| `fix/<描述>` | 缺陷修复 | 例：`fix/vote-double-submit` |
 
 规范：
 
 1. 分支名统一小写，用连字符分隔，禁止中文与空格。
-2. 单个分支生命周期不超过 24 小时；黑客松期间尽量 12 小时内合回 `main`。
-3. 每完成一个可演示的小功能就合并一次，避免最后一天集中解决冲突。
+2. 每 30 分钟至少一次小步 commit，每 2 小时由 C 集成一次到 `main`（见 AGENTS.md §9.1）。
+3. 单个分支生命周期尽量 2 小时内合回 `main`，避免最后集中解决冲突。
 4. 合并后即时删除远端分支。
 
 ## 二、提交信息规范
@@ -72,7 +75,7 @@ bash scripts/install-hooks.sh
 
 ## 三、拉取请求（PR）流程
 
-1. 从最新 `main` 切出分支：`git switch -c feat/your-feature main`。
+1. 从最新 `main` 切出分支：`git switch -c feat/a-ui main`（换成你自己的分支：`feat/a-ui` / `feat/b-game` / `feat/c-backend`）。
 2. 提交前在本地跑通自检：
 
    ```bash
@@ -91,7 +94,7 @@ bash scripts/install-hooks.sh
 - [ ] 功能在本机能跑通，且不破坏 `main` 上的既有演示路径。
 - [ ] 没有提交密钥、账号、`.env`、个人数据（见 `scripts/check-repo.sh`）。
 - [ ] 新增依赖已登记到 `ATTRIBUTIONS.md`，并确认授权允许竞赛使用。
-- [ ] 涉及赛题评分点的改动，已同步更新 `docs/03-评审对照表.md`。
+- [ ] 涉及赛题评分点的改动，已同步更新 `docs/scoring.md`。
 - [ ] 面向使用者的行为变化，已同步更新 `README.md` 或 `CHANGELOG.md`。
 - [ ] 命名与注释让陌生人能读懂；无大段注释掉的死代码。
 
@@ -104,7 +107,7 @@ bash scripts/install-hooks.sh
 
 ## 六、提交物与截止
 
-黑客松的最终提交物清单、检查顺序和截止时间见 [docs/04-提交清单.md](docs/04-提交清单.md)。**截止前 2 小时冻结 `main`**，只允许修演示阻塞级缺陷。
+黑客松的最终提交物清单、检查顺序和截止时间见 [docs/submission-checklist.md](docs/submission-checklist.md)。**截止前 2 小时冻结 `main`**，只允许修演示阻塞级缺陷。
 
 ## 七、Windows 本地环境提示
 

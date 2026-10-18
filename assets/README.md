@@ -6,7 +6,7 @@
 
 ```text
 assets/
-├── architecture.png     # 架构图（docs/02 引用）
+├── architecture.png     # 架构图（docs/architecture.md 引用）
 ├── screenshot-*.png     # 界面截图（README 引用）
 ├── demo-slides.pdf      # 演示 PPT 导出的 PDF（兜底用）
 ├── demo-video-cover.png # 演示视频封面

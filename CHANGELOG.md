@@ -11,12 +11,16 @@
 
 ### 新增
 
-- 搭建竞赛标准仓库骨架：协作文档、Issue / PR 模板、CI 自检、提交信息校验钩子、`docs/` 竞赛材料模板。
-- 新增 `docs/07-远程仓库与协作.md`：远程仓库信息、队长首次推送、队员加入流程、日常协作循环、认证与代理排查。
+- 引入 [AGENTS.md](AGENTS.md)（《真相局》项目协作说明书）作为唯一事实源：技术栈、A/B/C 分工、7 页面、数据模型、API 契约、Mock-first 策略与时间节奏。
+- 新增 `docs/product.md`、`docs/game-flow.md`、`docs/api.md`、`docs/demo-script.md`。
+- 新增 `docs/architecture.md`：技术栈、Mock-first、端口代理、模块边界展开。
 
 ### 变更
 
-- 无。
+- 文档重组：`docs/01~07` 中文编号模板 → AGENTS.md 指定的英文命名（`product` / `game-flow` / `api` / `demo-script` / `architecture` / `scoring` / `submission-checklist` / `collaboration`）。
+- `CONTRIBUTING.md` 分支模型对齐 AGENTS.md：`feat/a-ui`、`feat/b-game`、`feat/c-backend`，改为 30 分钟 commit / 2 小时集成。
+- `README.md`、`.env.example`、`src/README.md` 对齐《真相局》技术栈与 Mock-first 策略。
+- 仓库自检脚本 `scripts/check-repo.sh` 必需文件清单同步更新。
 
 ### 修复
 

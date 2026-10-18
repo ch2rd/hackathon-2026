@@ -1,4 +1,4 @@
-# 07 · 远程仓库与协作
+# 远程仓库与协作
 
 > 一句话：**本地仓库别人连不上，必须先有一个大家都能访问的远程仓库。** 本文档规定队长的首次推送、队员的加入流程，以及日常协作循环。
 
@@ -9,7 +9,7 @@
 | 平台 | GitHub |
 | 地址 | <https://github.com/ch2rd/hackathon-2026> |
 | 克隆命令 | `git clone https://github.com/ch2rd/hackathon-2026.git` |
-| 默认分支 | `main`（受保护，禁止直接 push） |
+| 默认分支 | `main`（唯一可演示分支，由 C 集成） |
 | 可见性 | 开发期 `private`，赛程结束按赛题要求改为 `public` |
 
 ## 二、队长：首次推送（只做一次）
@@ -114,7 +114,7 @@ bash scripts/verify.sh
 ### 5. 开第一个分支
 
 ```bash
-git switch -c feat/你的功能 main
+git switch -c feat/a-ui main   # 换成你自己的分支名：feat/a-ui / feat/b-game / feat/c-backend
 ```
 
 ## 四、日常协作循环
@@ -127,7 +127,7 @@ git switch main
 git pull --ff-only
 
 # 2. 做自己的事（分支名见 CONTRIBUTING.md）
-git switch -c feat/your-feature
+git switch -c feat/a-ui
 
 # 3. 小步提交，提交信息遵守 Conventional Commits
 git add -A
@@ -137,7 +137,7 @@ git commit -m "feat(模块): 做了什么"
 bash scripts/verify.sh
 
 # 5. 推送（首次推送新分支要带 -u）
-git push -u origin feat/your-feature
+git push -u origin feat/a-ui
 ```
 
 然后在网页上开 PR，按模板填完，等 1 名队友 Review 通过、CI 全绿后 **Squash and merge**。
@@ -147,7 +147,7 @@ git push -u origin feat/your-feature
 ```bash
 git switch main
 git pull --ff-only
-git branch -d feat/your-feature
+git branch -d feat/a-ui
 ```
 
 ## 五、认证问题
