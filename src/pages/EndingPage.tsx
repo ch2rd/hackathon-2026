@@ -19,10 +19,13 @@ export function EndingPage() {
   const error = useGameStore((s) => s.error);
 
   useEffect(() => {
-    const identity = loadIdentity();
-    if (!identity || !roomId || identity.roomId !== roomId) return;
+    if (!roomId) return;
     const store = useGameStore.getState();
-    store.enterRoom(identity);
+    if (store.roomId !== roomId || !store.playerId) {
+      const identity = loadIdentity();
+      if (!identity || identity.roomId !== roomId) return;
+      store.enterRoom(identity);
+    }
     void store.pollOnce(); // 只拉一次；ended 后本来也不会再有更新
   }, [roomId]);
 
