@@ -7,8 +7,8 @@
 
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import { z } from 'zod';
-import type { ApiErrorCode } from '../../src/types/api';
-import { ApiError } from '../../src/utils/apiError';
+import type { ApiErrorCode } from '../../types/api';
+import { ApiError } from '../../utils/apiError';
 
 const STATUS_BY_CODE: Record<ApiErrorCode, number> = {
   VALIDATION_ERROR: 400,

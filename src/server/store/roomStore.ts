@@ -11,8 +11,8 @@
 
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { emptyDb, type MockDb } from '../../src/mocks/mockEngine';
-import { ApiError } from '../../src/utils/apiError';
+import { emptyDb, type MockDb } from '../../mocks/mockEngine';
+import { ApiError } from '../../utils/apiError';
 
 const storePath = process.env.STORE_FILE ?? join(process.cwd(), '.data', 'rooms.json');
 

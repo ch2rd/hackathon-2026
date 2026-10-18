@@ -8,14 +8,14 @@
  * 这里只负责：取剧本目录 → 读写存储 → 调用引擎。
  */
 
-import type { RoomContext, RoomSession } from '../../src/types/api';
+import type { RoomContext, RoomSession } from '../../types/api';
 import type {
   AIHint,
   ListResult,
   RoomState,
   ScriptDetail,
   ScriptSummary,
-} from '../../src/types/models';
+} from '../../types/models';
 import {
   buildAIHint,
   createRoom,
@@ -30,7 +30,7 @@ import {
   setReady,
   startRoom,
   submitVote,
-} from '../../src/mocks/mockEngine';
+} from '../../mocks/mockEngine';
 import { mutate, read } from '../store/roomStore';
 import { getCatalog } from './scriptService';
 

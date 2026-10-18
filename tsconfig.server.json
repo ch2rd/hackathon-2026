@@ -13,5 +13,5 @@
     "strict": true,
     "skipLibCheck": true
   },
-  "include": ["server", "prisma", "vite.config.ts"]
+  "include": ["src/server", "prisma", "vite.config.ts"]
 }

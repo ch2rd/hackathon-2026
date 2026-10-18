@@ -9,8 +9,8 @@
 
 import OpenAI from 'openai';
 import { z } from 'zod';
-import type { AIHint } from '../../src/types/models';
-import { ApiError } from '../../src/utils/apiError';
+import type { AIHint } from '../../types/models';
+import { ApiError } from '../../utils/apiError';
 import { getRoomState, mockHint } from './roomService';
 
 const AI_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS ?? 8000);

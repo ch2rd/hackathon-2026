@@ -9,10 +9,10 @@
 
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { ScriptBundle } from '../../src/types/models';
-import { toCatalog, type ScriptCatalog } from '../../src/mocks/mockEngine';
-import { ApiError } from '../../src/utils/apiError';
-import { validateScriptBundle } from '../../src/utils/scriptSchema';
+import type { ScriptBundle } from '../../types/models';
+import { toCatalog, type ScriptCatalog } from '../../mocks/mockEngine';
+import { ApiError } from '../../utils/apiError';
+import { validateScriptBundle } from '../../utils/scriptSchema';
 
 const scriptsDir = process.env.SCRIPTS_DIR ?? join(process.cwd(), 'data', 'scripts');
 
