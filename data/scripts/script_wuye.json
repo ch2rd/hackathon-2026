@@ -230,6 +230,24 @@
       "content": "【仅顾砚可见】保险柜第二层留着一道新鲜的划痕，里面本该放着那份旧遗嘱副本。抽屉最深处躺着一枚铜扣，不是我的，也不是沈鹤年外套上的——那是庄园管家制服的扣子，铜面磨得发亮。",
       "visibility": "private",
       "ownerCharacterId": "char_guyan"
+    },
+    {
+      "id": "clue_12",
+      "scriptId": "script_wuye",
+      "actNumber": 2,
+      "title": "水槽里的残渣",
+      "content": "【仅林墨可见】厨房水槽的滤网上还留着一点没冲净的褐灰色粉末。乌头粉入口发麻，苦味会被醒酒汤里的冰糖盖住。扶他上楼时他忽然问我汤里放了什么，我没有回答。钟楼第三段铁梯的螺栓，是我用袖口擦掉指纹的。",
+      "visibility": "private",
+      "ownerCharacterId": "char_linmo"
+    },
+    {
+      "id": "clue_13",
+      "scriptId": "script_wuye",
+      "actNumber": 2,
+      "title": "录音笔的第四十七分钟",
+      "content": "【仅白榆可见】录音笔从踏进庄园起就没有关过。第四十七分钟处有一段含混的声音：雾里有人叫了一声「管家」，接着是铁器刮擦的尖响，和一声很轻的闷响。之后是长得反常的安静，安静得能听见有人扶着栏杆，一级一级往下走。我把这段反复听了七遍，还是没敢公开。",
+      "visibility": "private",
+      "ownerCharacterId": "char_baiyu"
     }
   ]
 }
