@@ -41,27 +41,11 @@ body {
   55% { opacity: 0.8; }
 }
 
-.portrait-breathe {
-  animation: portrait-breathe 7s ease-in-out infinite;
-  transform-origin: center bottom;
-}
-
-.portrait-blink {
-  animation: portrait-blink 6.5s ease-in-out infinite;
-}
-
-.portrait-hair {
-  animation: portrait-hair 9s ease-in-out infinite;
-  transform-origin: center top;
-}
-
-.portrait-glow {
-  animation: portrait-glow 5s ease-in-out infinite;
-}
-
-.portrait-flicker {
-  animation: portrait-flicker 2.8s ease-in-out infinite;
-}
+.portrait-breathe { animation: portrait-breathe 7s ease-in-out infinite; transform-origin: center bottom; }
+.portrait-blink { animation: portrait-blink 6.5s ease-in-out infinite; }
+.portrait-hair { animation: portrait-hair 9s ease-in-out infinite; transform-origin: center top; }
+.portrait-glow { animation: portrait-glow 5s ease-in-out infinite; }
+.portrait-flicker { animation: portrait-flicker 2.8s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
   .portrait-breathe,
