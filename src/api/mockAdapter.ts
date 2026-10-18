@@ -12,6 +12,8 @@
 
 import type { ScriptCatalog, MockDb } from '../mocks/mockEngine';
 import {
+  confirmStoryRead,
+  sendMessage,
   buildAIHint,
   createRoom,
   emptyDb,
@@ -44,6 +46,7 @@ function readDb(): MockDb {
       rooms: Array.isArray(parsed.rooms) ? parsed.rooms : [],
       players: Array.isArray(parsed.players) ? parsed.players : [],
       votes: Array.isArray(parsed.votes) ? parsed.votes : [],
+      messages: Array.isArray(parsed.messages) ? parsed.messages : [],
     };
   } catch {
     // 存储被禁用或数据损坏时，宁可开一个干净房间，也不要白屏
@@ -144,6 +147,20 @@ export const mockAdapter: ApiAdapter = {
     return state;
   },
 
+  async confirmStoryRead(roomId, playerId) {
+    const catalog = await loadCatalog();
+    const db = readDb();
+    const state = confirmStoryRead(db, catalog, roomId, playerId);
+    writeDb(db);
+    return state;
+  },
+  async sendMessage(roomId, playerId, input) {
+    const catalog = await loadCatalog();
+    const db = readDb();
+    const state = sendMessage(db, catalog, roomId, playerId, input);
+    writeDb(db);
+    return state;
+  },
   async getAIHint(roomId, playerId) {
     return buildAIHint(readDb(), await loadCatalog(), roomId, playerId);
   },

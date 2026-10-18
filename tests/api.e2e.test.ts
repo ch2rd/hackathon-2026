@@ -269,6 +269,50 @@ describe('完整一局（真实 HTTP，不假设哪本是凶手）', () => {
     const room = asObject(data(allReady).room);
     expect(room.status).toBe('playing');
     expect(room.currentAct).toBe(1);
+    expect(asArray(data(allReady).players).every((player) => player.isReady === false)).toBe(true);
+  });
+
+  it('个人故事阅读：进度持久化，全员确认后才进入介绍', async () => {
+    const path = `/api/rooms/${flow.roomId}`;
+    const before = await call(`${path}/state?playerId=${flow.hostId}`);
+    expect(asObject(data(before).room).gameplayPhase).toBe('reading');
+    const myCharacter = asObject(asObject(data(before).me).character);
+    expect(String(myCharacter.backgroundStory).length).toBeGreaterThan(100);
+    const third = await call(`${path}/state?playerId=${flow.thirdId}`);
+    expect(JSON.stringify(third.body)).not.toContain(myCharacter.backgroundStory);
+    expect(errorCode(await post(`${path}/next-act`, { playerId: flow.hostId }))).toBe('INVALID_STATE');
+    expect(errorCode(await post(`${path}/ready`, { playerId: flow.hostId, isReady: true }))).toBe('INVALID_STATE');
+    expect(errorCode(await post(`${path}/messages`, { playerId: flow.hostId, channel: 'public', content: '还不能介绍' }))).toBe('INVALID_STATE');
+    await post(`${path}/confirm-story-read`, { playerId: flow.hostId });
+    const duplicate = await post(`${path}/confirm-story-read`, { playerId: flow.hostId });
+    expect(asArray(data(duplicate).room && asObject(data(duplicate).room).storyReadPlayerIds)).toHaveLength(1);
+    await post(`${path}/confirm-story-read`, { playerId: flow.guestId });
+    const final = await post(`${path}/confirm-story-read`, { playerId: flow.thirdId });
+    expect(asObject(data(final).room).gameplayPhase).toBe('introduction');
+    expect((await post(`${path}/confirm-story-read`, { playerId: flow.thirdId })).status).toBe(200);
+  });
+
+  it('聊天接口：出场公聊、搜证禁言、讨论私聊仅双方可见', async () => {
+    const path = `/api/rooms/${flow.roomId}`;
+    const intro = await post(`${path}/messages`, { playerId: flow.hostId, channel: 'public', content: '大家好，我来介绍自己。' });
+    expect(intro.status).toBe(200);
+    const introDirect = await post(`${path}/messages`, { playerId: flow.hostId, channel: 'direct', receiverPlayerId: flow.guestId, content: '密谈' });
+    expect(errorCode(introDirect)).toBe('INVALID_STATE');
+    const search = await post(`${path}/next-act`, { playerId: flow.hostId });
+    expect(asObject(data(search).room).gameplayPhase).toBe('search');
+    const blocked = await post(`${path}/messages`, { playerId: flow.hostId, channel: 'public', content: '正在搜证' });
+    expect(errorCode(blocked)).toBe('INVALID_STATE');
+    const discussion = await post(`${path}/next-act`, { playerId: flow.hostId });
+    expect(asObject(data(discussion).room).gameplayPhase).toBe('discussion');
+    expect(asArray(data(discussion).players).every((player) => player.isReady === false)).toBe(true);
+    const direct = await post(`${path}/messages`, { playerId: flow.hostId, channel: 'direct', receiverPlayerId: flow.guestId, content: '仅双方可见的证词' });
+    expect(direct.status).toBe(200);
+    const recipient = await call(`${path}/state?playerId=${flow.guestId}`);
+    const third = await call(`${path}/state?playerId=${flow.thirdId}`);
+    expect(asArray(data(recipient).messages).some((message) => message.content === '仅双方可见的证词')).toBe(true);
+    expect(JSON.stringify(third.body)).not.toContain('仅双方可见的证词');
+    const malformed = await post(`${path}/messages`, { playerId: flow.hostId, channel: 'wrong', content: '无效' });
+    expect(malformed.status).toBe(400);
   });
 
   it('推进到投票，且揭晓前不下发凶手', async () => {
@@ -280,18 +324,26 @@ describe('完整一局（真实 HTTP，不假设哪本是凶手）', () => {
     };
 
     // 第 1 幕：全员确认讨论完成后，房主推进
+    const premature = await post(`/api/rooms/${flow.roomId}/next-act`, { playerId: flow.hostId });
+    expect(errorCode(premature)).toBe('INVALID_STATE');
     await confirmCurrentAct();
     let current = await post(`/api/rooms/${flow.roomId}/next-act`, { playerId: flow.hostId });
     let guard = 0;
 
     while (asObject(data(current).room).status === 'playing' && guard < 50) {
-      await confirmCurrentAct();
+      if (asObject(data(current).room).gameplayPhase === 'discussion') {
+        const blocked = await post(`/api/rooms/${flow.roomId}/next-act`, { playerId: flow.hostId });
+        expect(errorCode(blocked)).toBe('INVALID_STATE');
+        await confirmCurrentAct();
+      }
       current = await post(`/api/rooms/${flow.roomId}/next-act`, { playerId: flow.hostId });
+      expect(current.status).toBe(200);
       guard += 1;
     }
 
     expect(guard).toBeLessThan(50);
     expect(asObject(data(current).room).status).toBe('voting');
+    expect(asArray(data(current).players).every((player) => player.isReady === false)).toBe(true);
     expect(JSON.stringify(current.body)).not.toContain('murdererCharacterId');
   });
 

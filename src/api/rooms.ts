@@ -66,3 +66,11 @@ export function submitVote(roomId: string, voterPlayerId: string, targetPlayerId
 export function finishRoom(roomId: string, playerId: string) {
   return adapter.finishRoom(roomId, playerId);
 }
+
+export function sendMessage(roomId: string, playerId: string, input: import('../types/api').SendMessageInput) {
+  return adapter.sendMessage(roomId, playerId, input);
+}
+
+export function confirmStoryRead(roomId: string, playerId: string) {
+  return adapter.confirmStoryRead(roomId, playerId);
+}

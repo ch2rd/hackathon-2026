@@ -8,7 +8,7 @@
  * 这里只负责：取剧本目录 → 读写存储 → 调用引擎。
  */
 
-import type { RoomContext, RoomSession } from '../../types/api';
+import type { RoomContext, RoomSession, SendMessageInput } from '../../types/api';
 import type {
   AIHint,
   ListResult,
@@ -17,6 +17,8 @@ import type {
   ScriptSummary,
 } from '../../types/models';
 import {
+  confirmStoryRead,
+  sendMessage,
   buildAIHint,
   createRoom,
   finishRoom,
@@ -121,4 +123,14 @@ export async function endGame(roomId: string, playerId: string): Promise<RoomSta
 export async function mockHint(roomId: string, playerId: string): Promise<AIHint> {
   const catalog = await getCatalog();
   return read((db) => buildAIHint(db, catalog, roomId, playerId));
+}
+
+export async function postMessage(roomId: string, playerId: string, input: SendMessageInput): Promise<RoomState> {
+  const catalog = await getCatalog();
+  return mutate((db) => sendMessage(db, catalog, roomId, playerId, input));
+}
+
+export async function acknowledgeStory(roomId: string, playerId: string): Promise<RoomState> {
+  const catalog = await getCatalog();
+  return mutate((db) => confirmStoryRead(db, catalog, roomId, playerId));
 }

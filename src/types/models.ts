@@ -11,6 +11,11 @@ export type Genre = '推理' | '情感' | '恐怖' | '欢乐' | '硬核';
 export type Difficulty = 1 | 2 | 3 | 4 | 5;
 export type RoomStatus = 'waiting' | 'selecting' | 'playing' | 'voting' | 'ended';
 export type ClueVisibility = 'public' | 'private';
+/** 聊天频道：公聊（全房间可见）/ 私聊（仅双方可见）。 */
+export type GameplayPhase = 'reading' | 'introduction' | 'search' | 'discussion';
+export type ChatChannel = 'public' | 'direct';
+/** 聊天内容类型：普通发言 / 线索分享 / 阶段提示（系统）。 */
+export type ChatKind = 'chat' | 'clue' | 'stage';
 
 // ---------- §4.2 Script（剧本） ----------
 
@@ -56,6 +61,8 @@ export interface Character {
   age: number;
   avatarUrl: string;
   publicIntro: string;
+  /** 仅本人可见的个人故事背景，旧剧本可缺省。 */
+  backgroundStory?: string;
   /** 仅本人可见的秘密 */
   secret: string;
   goals: string[];
@@ -115,6 +122,10 @@ export interface Room {
   status: RoomStatus;
   /** 当前幕；0 表示未开始 */
   currentAct: number;
+  /** playing 内的同步环节；旧房间默认搜证。 */
+  gameplayPhase?: GameplayPhase;
+  /** 已读完个人故事的玩家；只保存 id，不保存私密内容。 */
+  storyReadPlayerIds?: string[];
   createdAt: string;
 }
 
@@ -141,6 +152,37 @@ export interface Vote {
   createdAt: string;
 }
 
+// ---------- §4.12 ChatMessage（房间聊天，本次新增） ----------
+
+/**
+ * 房间里的一条消息。公聊 = 全房间可见；私聊 = 只有收发双方可见。
+ *
+ * 安全约束（与 secret 同级，AGENTS.md §3.4 红线）：
+ * `channel === 'direct'` 的消息**只出现在收发双方的 `RoomState.messages` 里**，
+ * 第三方轮询永远拿不到；服务端按请求人过滤，前端不做兜底。
+ *
+ * 私聊是「角色之间的密谈」，所以：
+ * - 不入库到 Prisma（MVP 落运行时状态，和 votes 同一层）；
+ * - `senderName` 存发送时的昵称快照，历史不会被改名影响；
+ * - 角色名由前端按 `senderPlayerId` 去 `players` 里查，不冗余存。
+ */
+export interface ChatMessage {
+  id: string;
+  roomId: string;
+  channel: ChatChannel;
+  /** 发送者；系统阶段提示（`kind === 'stage'`）为 null */
+  senderPlayerId: string | null;
+  /** 私聊对象；公聊为 null */
+  receiverPlayerId: string | null;
+  /** 展示名：玩家昵称快照；系统提示固定为「剧情」 */
+  senderName: string;
+  kind: ChatKind;
+  /** `kind === 'clue'` 时是线索标题（内容由服务端从剧本包快照，不信客户端） */
+  title: string | null;
+  content: string;
+  createdAt: string;
+}
+
 // ---------- §4.11 RoomState（B 的主数据源） ----------
 
 export interface PublicPlayer {
@@ -162,6 +204,11 @@ export interface RoomState {
     visibleClues: Clue[];
   };
   votes: Array<{ voterPlayerId: string; targetPlayerId: string }>;
+  /**
+   * 当前玩家有权看到的聊天（公聊 + 自己收发的私聊），按时间升序，最多 N 条。
+   * 随 2 秒轮询一起下发 —— P0 不做 WebSocket（§0.1），聊天搭状态轮询的车。
+   */
+  messages: ChatMessage[];
   /** 只在 status === 'ended' 时非空 */
   result: {
     murdererCharacterId: string;

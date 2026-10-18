@@ -14,7 +14,7 @@ import { dirname, join } from 'node:path';
 import { emptyDb, type MockDb } from '../../mocks/mockEngine';
 import { ApiError } from '../../utils/apiError';
 
-const storePath = process.env.STORE_FILE ?? join(process.cwd(), '.data', 'rooms.json');
+const storePath = process.env.STORE_FILE?.trim() || join(process.cwd(), '.data', 'rooms.json');
 
 let writeQueue: Promise<unknown> = Promise.resolve();
 
@@ -27,6 +27,7 @@ async function load(): Promise<MockDb> {
       rooms: Array.isArray(parsed.rooms) ? parsed.rooms : [],
       players: Array.isArray(parsed.players) ? parsed.players : [],
       votes: Array.isArray(parsed.votes) ? parsed.votes : [],
+      messages: Array.isArray(parsed.messages) ? parsed.messages : [],
     };
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return emptyDb();

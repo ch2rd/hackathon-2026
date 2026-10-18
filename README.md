@@ -128,6 +128,39 @@ npm run dev
 | 房间号进不去 | 房间号是 6 位大写，已去掉易混的 `0 O 1 I`；核对时注意别输成字母 O 或数字 0 |
 | 浏览器提示连不上后端 | 先看 <http://localhost:3001/api/health>；真实模式下后端没起会报 `NETWORK_ERROR` |
 
+### 3.8 组内共享版本与多人联机
+
+本次共享分支为 `feat/shared-game-flow`，已合并当前 `main` 的场景探索、角色画像、出场动画及讨论确认规则。
+组员首次获取：
+
+```bash
+git clone --branch feat/shared-game-flow https://github.com/ch2rd/hackathon-2026.git
+cd hackathon-2026
+npm ci
+cp .env.example .env
+npm run dev
+```
+
+已有本地仓库且工作区干净时，运行 `git fetch origin`，再运行 `git switch feat/shared-game-flow`；后续在该分支运行 `git pull --ff-only`。
+Windows PowerShell 复制配置使用 `Copy-Item .env.example .env`。拉取到自己的源码副本可各自开发；每次启动前确认当前分支。
+
+**完整流程**：创建/加入房间 → 选角准备 → 人物动画 → 阅读自己的故事、秘密与任务 → 每人确认已读 → 公聊自我介绍 → 场景搜证 → 公聊/双人私聊 → 全员确认讨论完成 → 房主下一幕或最终投票 → 结局。
+四个剧本共 22 位角色有独立故事。公聊可分享线索，分享私密线索需再次确认；私聊只有双方可见。
+新建一局可以体验完整的新流程，旧房间保留原来的进度。背景、秘密和个人任务可在游戏页展开回看。
+
+**多台电脑一起进入同一房间**：由一位组员作为服务主机，在该主机 `.env` 设置 `VITE_USE_MOCK=false`，然后分别在两个终端运行：
+
+```bash
+npm run dev:api
+npm run dev:web -- --host 0.0.0.0
+```
+
+其他组员连接同一局域网，打开 `http://主机的局域网IP:5173`，使用同一个六位房间号加入。
+浏览器请求仍经 Vite 的 `/api` 代理到该主机的后端，所有人共享该主机的房间、阅读进度、投票和聊天；主机需保持两个终端运行，并允许本地网络访问前端端口 5173。
+修改 `.env` 后需重启前端；不要把主机的 `.env` 或 `.data/rooms.json` 提交到 GitHub。
+
+`VITE_USE_MOCK=true` 适用于同一浏览器多标签页演示；不同电脑的 localStorage 相互独立，Mock 模式无法共享同一个房间。
+
 ## 四、技术栈
 
 | 层 | 选型 |

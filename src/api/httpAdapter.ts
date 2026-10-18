@@ -73,6 +73,12 @@ export const httpAdapter: ApiAdapter = {
     return post<RoomState>(roomPath(roomId, '/finish'), { playerId });
   },
 
+  confirmStoryRead(roomId, playerId) {
+    return post<RoomState>(roomPath(roomId, '/confirm-story-read'), { playerId });
+  },
+  sendMessage(roomId, playerId, input) {
+    return post<RoomState>(roomPath(roomId, '/messages'), { playerId, ...input });
+  },
   getAIHint(roomId, playerId) {
     return post<AIHint>('/api/ai/hint', { roomId, playerId });
   },

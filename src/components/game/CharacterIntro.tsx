@@ -15,9 +15,10 @@ interface CharacterIntroProps {
   character: Character;
   scene: SceneKey;
   onEnter: () => void;
+  enterLabel?: string;
 }
 
-export function CharacterIntro({ character, scene, onEnter }: CharacterIntroProps) {
+export function CharacterIntro({ character, scene, onEnter, enterLabel = '进入现场' }: CharacterIntroProps) {
   const memory = resolveMemoryFilter(character.identity);
 
   return (
@@ -67,7 +68,7 @@ export function CharacterIntro({ character, scene, onEnter }: CharacterIntroProp
           className="mt-1 rounded-md border bg-black/40 px-7 py-3 font-medium transition hover:bg-black/70"
           style={{ borderColor: memory.accent, color: memory.accent }}
         >
-          进入现场
+          {enterLabel}
         </button>
       </div>
     </div>

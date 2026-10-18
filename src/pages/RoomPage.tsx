@@ -11,6 +11,9 @@ import type { FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { isDemoMode } from '../api/client';
 import { joinRoom } from '../api/rooms';
+import { gameAudio } from '../game/audio';
+import { AmbienceLayer } from '../components/game/AmbienceLayer';
+import { AudioToggle } from '../components/game/AudioToggle';
 import { CharacterGrid } from '../components/game/CharacterGrid';
 import { DemoAdvanceButton } from '../components/game/DemoAdvanceButton';
 import { PlayerList } from '../components/game/PlayerList';
@@ -56,6 +59,10 @@ export function RoomPage() {
   // playing / voting / ended 不在本页停留（game-flow.md §2）
   const roomStatus = roomState?.room.status;
   useEffect(() => {
+    gameAudio.setStage(roomStatus ?? 'waiting');
+  }, [roomStatus]);
+
+  useEffect(() => {
     if (!roomStatus || !roomId) return;
     if (roomStatus === 'playing' || roomStatus === 'voting') {
       navigate(`/rooms/${roomId}/play`, { replace: true });
@@ -92,46 +99,54 @@ export function RoomPage() {
   if (!roomState) {
     if (error?.code === 'NOT_FOUND') {
       return (
-        <section className="mx-auto max-w-md p-6 text-center">
-          <h1 className="text-lg font-medium">房间不存在或已解散</h1>
-          <button
-            type="button"
-            className="mt-4 rounded-md border border-neutral-700 px-4 py-2 text-sm"
-            onClick={() => navigate('/scripts')}
-          >
-            去剧本库看看
-          </button>
-        </section>
+        <>
+          <AmbienceLayer stage="waiting" />
+          <AudioToggle />
+          <section className="relative z-10 mx-auto max-w-md p-6 text-center">
+            <h1 className="text-lg font-medium">房间不存在或已解散</h1>
+            <button
+              type="button"
+              className="mt-4 rounded-md border border-neutral-700 px-4 py-2 text-sm"
+              onClick={() => navigate('/scripts')}
+            >
+              去剧本库看看
+            </button>
+          </section>
+        </>
       );
     }
     return (
-      <section className="mx-auto flex max-w-md flex-col gap-4 p-6">
-        <h1 className="text-lg font-medium">{status === 'syncing' ? '正在进入房间…' : '加入房间'}</h1>
-        <form className="flex flex-col gap-3" onSubmit={handleJoin}>
-          <input
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder="6 位房间号"
-            maxLength={6}
-            className="rounded-md border border-neutral-700 bg-neutral-900 p-3 uppercase tracking-widest"
-          />
-          <input
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            placeholder="你的昵称"
-            maxLength={12}
-            className="rounded-md border border-neutral-700 bg-neutral-900 p-3"
-          />
-          {joinError && <p className="text-sm text-red-400">{joinError}</p>}
-          <button
-            type="submit"
-            disabled={isJoining}
-            className="rounded-md border border-neutral-600 bg-neutral-800 p-3 font-medium disabled:opacity-50"
-          >
-            {isJoining ? '加入中…' : '加入房间'}
-          </button>
-        </form>
-      </section>
+      <>
+        <AmbienceLayer stage="waiting" />
+        <AudioToggle />
+        <section className="relative z-10 mx-auto flex max-w-md flex-col gap-4 p-6">
+          <h1 className="text-lg font-medium">{status === 'syncing' ? '正在进入房间…' : '加入房间'}</h1>
+          <form className="flex flex-col gap-3" onSubmit={handleJoin}>
+            <input
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="6 位房间号"
+              maxLength={6}
+              className="rounded-md border border-neutral-700 bg-neutral-900 p-3 uppercase tracking-widest"
+            />
+            <input
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              placeholder="你的昵称"
+              maxLength={12}
+              className="rounded-md border border-neutral-700 bg-neutral-900 p-3"
+            />
+            {joinError && <p className="text-sm text-red-400">{joinError}</p>}
+            <button
+              type="submit"
+              disabled={isJoining}
+              className="rounded-md border border-neutral-600 bg-neutral-800 p-3 font-medium disabled:opacity-50"
+            >
+              {isJoining ? '加入中…' : '加入房间'}
+            </button>
+          </form>
+        </section>
+      </>
     );
   }
 
@@ -147,10 +162,13 @@ export function RoomPage() {
   const showDemoAdvance = canDemoAdvance(roomState, me.id, isDemoMode());
 
   return (
-    <section className="mx-auto flex max-w-3xl flex-col gap-5 p-6">
+    <>
+      <AmbienceLayer stage={roomState.room.status} />
+      <AudioToggle />
+      <section className="relative z-10 mx-auto flex max-w-3xl flex-col gap-5 p-6">
       <header className="flex items-end justify-between">
         <h1 className="text-xl font-medium">
-          房间号 <span className="tracking-widest text-amber-300">{roomState.room.code}</span>
+          房间号 <span className="fx-glow tracking-widest text-amber-300">{roomState.room.code}</span>
         </h1>
         <span className="text-sm text-neutral-400">
           {roomState.room.status === 'waiting' ? '等待玩家加入' : '选择你的角色'}
@@ -181,8 +199,11 @@ export function RoomPage() {
             <button
               type="button"
               disabled={isActing}
-              onClick={() => void useGameStore.getState().startRoom()}
-              className="rounded-md border border-emerald-700 bg-emerald-900 p-3 font-medium disabled:opacity-50"
+              onClick={() => {
+                gameAudio.sfx('thunder');
+                void useGameStore.getState().startRoom();
+              }}
+              className="fx-rise rounded-md border border-emerald-700 bg-emerald-900 p-3 font-medium transition hover:brightness-125 disabled:opacity-50"
             >
               开始选角（{roomState.players.length} 人）
             </button>
@@ -199,13 +220,19 @@ export function RoomPage() {
             assignments={assignments}
             myCharacterId={myCharacterId}
             canSelect={!myReady}
-            onSelect={(characterId) => void useGameStore.getState().selectCharacter(characterId)}
+            onSelect={(characterId) => {
+              gameAudio.sfx('click');
+              void useGameStore.getState().selectCharacter(characterId);
+            }}
           />
           <div className="flex items-center gap-3">
             <button
               type="button"
               disabled={isActing || (!myReady && !canBeReady(roomState, me.id))}
-              onClick={() => void useGameStore.getState().setReady(!myReady)}
+              onClick={() => {
+                gameAudio.sfx('click');
+                void useGameStore.getState().setReady(!myReady);
+              }}
               className={[
                 'rounded-md border p-3 font-medium disabled:opacity-50',
                 myReady
@@ -231,6 +258,7 @@ export function RoomPage() {
           <DemoAdvanceButton onAdvance={() => void useGameStore.getState().finishRoom()} disabled={isActing} />
         </footer>
       )}
-    </section>
+      </section>
+    </>
   );
 }

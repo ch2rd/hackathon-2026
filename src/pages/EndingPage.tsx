@@ -7,6 +7,9 @@
 
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { AmbienceLayer } from '../components/game/AmbienceLayer';
+import { AudioToggle } from '../components/game/AudioToggle';
+import { gameAudio } from '../game/audio';
 import { voteCountsByPlayer } from '../game/selectors';
 import { loadIdentity, useGameStore } from '../stores/gameStore';
 
@@ -39,6 +42,21 @@ export function EndingPage() {
     }
   }, [roomStatus, roomId, navigate]);
 
+  // 结局揭晓节奏：状态同步 + 延迟 0.9s 后按结果播放和弦
+  const resultSummary = roomState?.result
+    ? `${roomState.result.isCorrect}|${roomState.result.topVotedCharacterId ?? ''}`
+    : null;
+  useEffect(() => {
+    if (!resultSummary) return;
+    gameAudio.setStage('ended');
+    const [isCorrectStr, topVotedCharacterId] = resultSummary.split('|');
+    const timer = setTimeout(
+      () => gameAudio.sfx(isCorrectStr === 'true' ? 'revealGood' : topVotedCharacterId ? 'revealBad' : 'revealTie'),
+      900,
+    );
+    return () => clearTimeout(timer);
+  }, [resultSummary]);
+
   if (!roomState) {
     if (error?.code === 'NOT_FOUND') {
       return (
@@ -70,12 +88,15 @@ export function EndingPage() {
   const ranking = [...roomState.players].sort((a, b) => (counts[b.id] ?? 0) - (counts[a.id] ?? 0));
 
   return (
-    <section className="mx-auto flex max-w-2xl flex-col gap-5 p-6">
-      <h1 className="text-center text-2xl font-medium">真相揭晓</h1>
+    <>
+      <AmbienceLayer stage="ended" mood={result.isCorrect ? 'good' : 'bad'} />
+      <AudioToggle />
+      <section className="relative z-10 mx-auto flex max-w-2xl flex-col gap-5 p-6">
+      <h1 className="fx-stamp text-center text-2xl font-medium">真相揭晓</h1>
 
       <div
         className={[
-          'rounded-md border p-4 text-center',
+          'fx-fade rounded-md border p-4 text-center',
           result.isCorrect ? 'border-emerald-700 bg-emerald-950 text-emerald-200' : 'border-amber-800 bg-amber-950 text-amber-200',
         ].join(' ')}
         data-testid="verdict"
@@ -91,7 +112,7 @@ export function EndingPage() {
         )}
       </div>
 
-      <div className="rounded-md border border-neutral-700 bg-neutral-900 p-4">
+      <div className="fx-rise rounded-md border border-neutral-700 bg-neutral-900/80 p-4" style={{ animationDelay: '300ms' }}>
         <h2 className="text-sm text-neutral-400">凶手是</h2>
         <p className="mt-1 text-xl font-medium text-red-300">
           {murdererPlayer
@@ -102,10 +123,11 @@ export function EndingPage() {
 
       <div className="flex flex-col gap-2">
         <h2 className="text-sm font-medium text-neutral-300">投票结果</h2>
-        {ranking.map((player) => (
+        {ranking.map((player, index) => (
           <div
             key={player.id}
-            className="flex items-center justify-between rounded-md border border-neutral-800 bg-neutral-950 p-3 text-sm"
+            className="fx-rise flex items-center justify-between rounded-md border border-neutral-800 bg-neutral-950/80 p-3 text-sm"
+            style={{ animationDelay: `${450 + index * 120}ms` }}
           >
             <span>
               <span className="font-medium">{player.nickname}</span>
@@ -125,10 +147,11 @@ export function EndingPage() {
           useGameStore.getState().leaveRoom(); // 不复用旧状态（§4.10）
           navigate('/scripts', { replace: true });
         }}
-        className="rounded-md border border-emerald-700 bg-emerald-900 p-3 font-medium"
+        className="rounded-md border border-emerald-700 bg-emerald-900 p-3 font-medium transition hover:brightness-125"
       >
         再来一局（创建新房间）
       </button>
-    </section>
+      </section>
+    </>
   );
 }

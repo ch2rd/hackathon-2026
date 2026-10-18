@@ -9,6 +9,8 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { asyncHandler, parseInput } from '../middleware/errorHandler';
 import {
+  acknowledgeStory,
+  postMessage,
   advanceAct,
   beginGame,
   chooseCharacter,
@@ -124,3 +126,17 @@ roomRouter.post(
     res.json({ data: await endGame(req.params.roomId, playerId) });
   }),
 );
+
+const messageSchema = z.object({
+  playerId: z.string().min(1), channel: z.enum(['public', 'direct']),
+  receiverPlayerId: z.string().min(1).optional(), content: z.string().max(1000), clueId: z.string().min(1).optional(),
+});
+roomRouter.post('/:roomId/messages', asyncHandler(async (req, res) => {
+  const { playerId, ...input } = parseInput(messageSchema, req.body);
+  res.json({ data: await postMessage(req.params.roomId, playerId, input) });
+}));
+
+roomRouter.post('/:roomId/confirm-story-read', asyncHandler(async (req, res) => {
+  const { playerId } = parseInput(playerQuerySchema, req.body);
+  res.json({ data: await acknowledgeStory(req.params.roomId, playerId) });
+}));

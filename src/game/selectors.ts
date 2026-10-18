@@ -84,12 +84,14 @@ export function readyProgress(state: RoomState): { confirmed: number; total: num
   };
 }
 
-/** 房主可否点「下一幕」（playing、房主且全员确认本幕讨论完成）。 */
+/** 房主推进当前环节；阅读须全员自行确认，讨论须全员确认完成。 */
 export function canNextAct(state: RoomState, playerId: string): boolean {
+  const phase = state.room.gameplayPhase ?? 'search';
   return (
     state.room.status === 'playing' &&
     isHostPlayer(state, playerId) &&
-    allPlayersReady(state)
+    phase !== 'reading' &&
+    (phase !== 'discussion' || allPlayersReady(state))
   );
 }
 
