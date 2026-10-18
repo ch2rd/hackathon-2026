@@ -12,6 +12,7 @@
 ### 新增
 
 - 搭建竞赛标准仓库骨架：协作文档、Issue / PR 模板、CI 自检、提交信息校验钩子、`docs/` 竞赛材料模板。
+- 新增 `docs/07-远程仓库与协作.md`：远程仓库信息、队长首次推送、队员加入流程、日常协作循环、认证与代理排查。
 
 ### 变更
 
@@ -29,5 +30,5 @@
 - 引入 MIT 开源协议与第三方资源声明文件。
 - 建立仓库自检脚本 `scripts/check-repo.sh` 与提交信息校验 `scripts/check-commit-msg.sh`。
 
-[Unreleased]: https://github.com/OWNER/REPO/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/OWNER/REPO/releases/tag/v0.1.0
+[Unreleased]: https://github.com/ch2nd/hackathon-2026/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/ch2nd/hackathon-2026/releases/tag/v0.1.0

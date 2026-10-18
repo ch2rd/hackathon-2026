@@ -50,6 +50,7 @@ REQUIRED_FILES=(
   "docs/04-提交清单.md"
   "docs/05-演示脚本.md"
   "docs/06-团队分工与排期.md"
+  "docs/07-远程仓库与协作.md"
   ".github/PULL_REQUEST_TEMPLATE.md"
   ".github/CODEOWNERS"
   ".github/workflows/ci.yml"
