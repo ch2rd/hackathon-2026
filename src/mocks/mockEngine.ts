@@ -26,7 +26,7 @@ import type {
   Vote,
 } from '../types/models';
 import { isPlayableBundle } from '../utils/scriptSchema';
-import { ApiError } from '../api/client';
+import { ApiError } from '../utils/apiError';
 
 /** Mock 模式的持久化结构。 */
 export interface MockDb {

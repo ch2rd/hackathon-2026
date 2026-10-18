@@ -22,20 +22,13 @@ export function isDemoMode(): boolean {
 }
 
 /**
- * 统一错误对象。Mock 与真实模式抛出的都是它，
+ * 统一错误对象。Mock、真实模式、后端服务层抛出的都是它，
  * 所以 A/B 只需要 catch 一种错误（AGENTS.md §1.2 第 2 条）。
+ * 定义在 `src/utils/apiError.ts`，这里只做再导出。
  */
-export class ApiError extends Error {
-  readonly code: ApiErrorCode;
-  readonly status: number;
+import { ApiError } from '../utils/apiError';
 
-  constructor(code: ApiErrorCode, message: string, status = 0) {
-    super(message);
-    this.name = 'ApiError';
-    this.code = code;
-    this.status = status;
-  }
-}
+export { ApiError };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;

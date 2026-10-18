@@ -1,3 +1,16 @@
+// 《真相局》数据模型（C 维护）
+//
+// 职责划分：
+// - 剧本内容（剧本/角色/幕/线索）是**静态内容**，前后端都直接读 data/scripts/*.json，
+//   不入库 —— 这样新增剧本不需要 seed，也不会出现「文件改了库没改」的漂移。
+// - 本文件只描述**运行时状态**（房间/玩家/投票）。
+//
+// 当前服务端默认用 server/store/roomStore.ts（JSON 文件，零依赖、可跑）。
+// 迁移到 Prisma 的步骤：
+//   1. npm run db:push && npm run db:seed
+//   2. 新增一个实现同样接口的 Prisma 版 roomStore，替换 server/services 里的引用
+// 字段命名：Prisma 用 camelCase，库里落 snake_case（AGENTS.md §7）。
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -5,4 +18,49 @@ generator client {
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
+}
+
+model Room {
+  id           String   @id
+  code         String   @unique
+  scriptId     String   @map("script_id")
+  hostPlayerId String   @map("host_player_id")
+  status       String // waiting | selecting | playing | voting | ended
+  currentAct   Int      @default(0) @map("current_act")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  players Player[]
+  votes   Vote[]
+
+  @@map("rooms")
+}
+
+model Player {
+  id          String   @id
+  roomId      String   @map("room_id")
+  nickname    String
+  characterId String?  @map("character_id")
+  isHost      Boolean  @default(false) @map("is_host")
+  isReady     Boolean  @default(false) @map("is_ready")
+  joinedAt    DateTime @default(now()) @map("joined_at")
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+  @@map("players")
+}
+
+model Vote {
+  id             String   @id
+  roomId         String   @map("room_id")
+  voterPlayerId  String   @map("voter_player_id")
+  targetPlayerId String   @map("target_player_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  // 一个房间内每人只能投一票
+  @@unique([roomId, voterPlayerId])
+  @@index([roomId])
+  @@map("votes")
 }
