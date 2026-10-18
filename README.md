@@ -115,7 +115,7 @@ npm run dev
 - **房间 / 玩家 / 投票**存在 `.data/rooms.json`，首次写入时自动创建，已 gitignore。
 - `prisma/schema.prisma` 已按 [AGENTS.md](AGENTS.md) §4 建好，作为后续迁移目标。
   当前环境里 Prisma 引擎是独立子进程、无法启动，所以存储层先用零依赖实现，
-  替换面收敛在 `server/store/roomStore.ts` 一个文件。
+  替换面收敛在 `src/server/store/roomStore.ts` 一个文件。
 - 因此 `npm run db:push` / `npm run db:seed` 目前**不是必需步骤**。
 
 ### 3.7 常见问题
@@ -148,7 +148,7 @@ npm run dev
 ├── CONTRIBUTING.md          # 分支、提交、评审规范
 ├── docs/                    # product / game-flow / api / demo-script 等
 ├── src/                     # 前端源码（pages / components / stores / api / mocks / types …）
-├── server/                  # Express 后端（routes / services / store / middleware）
+├── src/server/                  # Express 后端（routes / services / store / middleware）
 ├── prisma/                  # schema：房间等运行时状态的迁移目标
 ├── data/scripts/            # 剧本数据源，一个剧本一个 JSON（见 docs/script-format.md）
 ├── tests/                   # vitest 回归测试

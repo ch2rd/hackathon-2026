@@ -10,8 +10,8 @@
 
 | 评分维度 | 分值 | 我们的做法 | 证据位置（文件 / 行 / 演示时间点） | 状态 |
 | --- | --- | --- | --- | --- |
-| 创新性 | — | 剧本**零代码热插拔**：丢一个 JSON 就上线一本，后端对剧本零假设；Mock 与真实后端**同一份状态机**，不会演示一套、上线一套；AI 可降级不阻塞 | `docs/script-format.md`、`src/mocks/mockEngine.ts`、`server/services/*` | 已完成 |
-| 技术完成度 | — | §5 的 P0 端点全部实装；状态机覆盖边界（抢角、重复投票、投自己、平票、非房主越权）；三份 tsconfig 类型检查 + 16 个回归用例 + 真实后端端到端冒烟 | `server/`、`tests/mockEngine.test.ts`、`scripts/smoke-api.ts` | 后端已完成；前端待补 |
+| 创新性 | — | 剧本**零代码热插拔**：丢一个 JSON 就上线一本，后端对剧本零假设；Mock 与真实后端**同一份状态机**，不会演示一套、上线一套；AI 可降级不阻塞 | `docs/script-format.md`、`src/mocks/mockEngine.ts`、`src/server/services/*` | 已完成 |
+| 技术完成度 | — | §5 的 P0 端点全部实装；状态机覆盖边界（抢角、重复投票、投自己、平票、非房主越权）；三份 tsconfig 类型检查 + 16 个回归用例 + 真实后端端到端冒烟 | `src/server/`、`tests/mockEngine.test.ts`、`scripts/smoke-api.ts` | 后端已完成；前端待补 |
 | 实用价值 | — | 3 个人开一个标签页就能开一局；房间凑不齐时房主可用「演示推进」兜底；不需要数据库、不需要 AI Key 就能完整跑 | `src/mocks/mockEngine.ts`（`finishRoom`）、`.env.example` | 已完成 |
 | 演示效果 | — | 5 分钟脚本已写好（首页 → 剧本库 → 建房加入 → 选角 → 两幕剧情 → AI 推理 → 投票结局）；断网可用 `VITE_USE_MOCK=true` 全程离线演示 | `docs/demo-script.md`、`README.md` 3.1 | 进行中（等页面） |
 | 工程规范 | — | AGENTS.md 为唯一事实源；commit 信息校验钩子；仓库自检脚本；第三方资源逐条登记；secret 不入库 | `AGENTS.md`、`scripts/check-commit-msg.sh`、`scripts/check-repo.sh`、`ATTRIBUTIONS.md` | 已完成 |
@@ -75,7 +75,7 @@
    → 说实话：不是为高并发设计的。房间状态在单进程内存里，写入是全局串行的（`mutate()` 队列）+
    临时文件改名落盘，适合演示和几十人同时在线的小规模，多实例无法水平扩展。
    但升级路径已经铺好：`prisma/schema.prisma` 按数据模型建好了表，替换面收敛在
-   `server/store/roomStore.ts` 一个文件，换 Postgres + 行级锁就能横向扩。
+   `src/server/store/roomStore.ts` 一个文件，换 Postgres + 行级锁就能横向扩。
 
 5. **「如果现在给你一周，你会先改哪里？」**
    → 按优先级：① **存储层换 Postgres**，解决水平扩展，替换面已经压到一个文件；

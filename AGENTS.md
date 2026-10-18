@@ -117,7 +117,7 @@ Vite 把 `/api` 代理到 `http://localhost:3001`，前端代码里不要写死 
 | `npm run db:seed` | 写入种子数据 |
 | `npm run test` | 运行 Vitest（有测试时） |
 
-> `dev` 用 `concurrently` 同时跑 `vite` 和 `tsx watch server/index.ts`。
+> `dev` 用 `concurrently` 同时跑 `vite` 和 `tsx watch src/server/index.ts`。
 > 如果现场 `concurrently` 出问题，允许开两个终端分别跑 `dev:web` / `dev:api`。
 
 ---
@@ -259,7 +259,7 @@ docs/demo-script.md
 
 - 不要修改 `src/stores/gameStore.ts`、`src/game/**`。
 - 不要修改 `src/types/**`、`src/api/**`、`src/mocks/**`。
-- 不要修改 `server/**`、`prisma/**`。
+- 不要修改 `src/server/**`、`prisma/**`。
 - 不要把游戏状态机写进页面组件。
 - 不要让 AI 一次生成整个网站。
 
@@ -313,7 +313,7 @@ docs/game-flow.md
 
 - 不要修改 A 的页面、`src/components/ui/**`、`src/styles/**`。
 - 不要修改 `src/types/**`、`src/api/**`、`src/mocks/**`。
-- 不要修改 `server/**`、`prisma/**`。
+- 不要修改 `src/server/**`、`prisma/**`。
 - 不要在组件里写死剧本/角色数据，必须从 API 层拿。
 - 不要把别人的角色秘密放进全局 store 或 URL。
 
@@ -337,7 +337,7 @@ src/types/**
 src/api/**
 src/mocks/**
 src/utils/**            # 公共工具，默认 C 维护
-server/**
+src/server/**
 prisma/**
 data/**
 docs/api.md
@@ -357,7 +357,7 @@ postcss.config.js
 3. `src/api/scripts.ts`、`rooms.ts`、`ai.ts`：A/B 只调用这些函数。
 4. `src/api/mockAdapter.ts`、`httpAdapter.ts`：同一套签名，可切换。
 5. `src/mocks/`：1 个完整剧本 + 3 个剧本卡片数据。
-6. `server/routes/`、`server/services/`、`server/middleware/`。
+6. `src/server/routes/`、`src/server/services/`、`src/server/middleware/`。
 7. `prisma/schema.prisma` + `prisma/seed.ts`。
 8. `docs/api.md`：每个接口的请求/响应示例。
 9. `POST /api/ai/hint`：8 秒超时，失败自动降级为 Mock。
@@ -395,7 +395,7 @@ postcss.config.js
 | `src/components/ui/**` | A 维护；B 复用，不改样式 |
 | `src/stores/**` | B 维护；A 不直接改 |
 | `src/game/**` | B 维护；A/C 不直接改 |
-| `server/**` / `prisma/**` | C 维护；A/B 不直接改 |
+| `src/server/**` / `prisma/**` | C 维护；A/B 不直接改 |
 
 **冲突处理：**
 
@@ -789,7 +789,7 @@ team-ai-project/
 │   ├── types/                   # C
 │   ├── utils/                   # C（公共工具）
 │   └── styles/                  # A
-├── server/
+├── src/server/
 │   ├── index.ts                 # C
 │   ├── routes/                  # C
 │   ├── services/                # C
@@ -1019,7 +1019,7 @@ chore: 配置 Tailwind
 - docs/product.md 的相关段落
 
 禁止修改：
-- src/api/**、src/types/**、src/stores/**、server/**
+- src/api/**、src/types/**、src/stores/**、src/server/**
 
 先列出改动文件，再给代码。
 ```
@@ -1046,7 +1046,7 @@ chore: 配置 Tailwind
 - docs/game-flow.md
 
 禁止修改：
-- src/components/ui/**、src/styles/**、src/api/**、src/types/**、server/**
+- src/components/ui/**、src/styles/**、src/api/**、src/types/**、src/server/**
 
 先列出改动文件，再给代码。
 ```
@@ -1068,7 +1068,7 @@ chore: 配置 Tailwind
 - src/types/**
 - src/api/**
 - src/mocks/**
-- server/**
+- src/server/**
 - docs/api.md
 
 禁止修改：
@@ -1085,6 +1085,7 @@ chore: 配置 Tailwind
 | --- | --- | --- |
 | 2026-10-18 | 全员 | 初版：从通用模板改为《真相局》剧本杀项目，明确 A/B/C 分工、7 页面、数据模型、API 契约、Mock-first 策略 |
 | 2026-10-18 | C | 剧本数据源改为 `data/scripts/*.json`（一剧本一文件，新增剧本零代码改动）；新增 `GET /api/rooms/:roomId/context`；拆出 `src/mocks/mockEngine.ts`（纯规则，与存储解耦）。**以上变更待 A/B 确认** |
+| 2026-10-18 | C | 后端目录 `server/` → `src/server/`（对齐 PR #2 定稿）；`src/server/index.ts` 拆出 `createApp()` 供测试复用；新增 `tests/api.e2e.test.ts`（真实后端 e2e，34 项）；CI 补 `actions/setup-node@v4`（Node 22）；修正 `DATABASE_URL` 相对路径（`file:./dev.db`）与 `.gitignore` 编码。**以上变更待 A/B 确认** |
 
 ---
 

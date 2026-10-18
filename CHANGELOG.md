@@ -16,7 +16,7 @@
 - 新增 `docs/architecture.md`：技术栈、Mock-first、端口代理、模块边界展开。
 - **共享类型与 API 契约**：`src/types/models.ts`、`src/types/api.ts`、`src/api/`（`ApiAdapter` + Mock/HTTP 双实现 + 统一 `ApiError`）。
 - **Mock 适配器**：`localStorage` 持久化房间/玩家/投票，不启后端即可完整走通一局，多标签页可同屏演示。
-- **真实后端**：`server/` 分 routes / services / store / middleware 四层，AGENTS.md §5 的 P0 端点全部实装。
+- **真实后端**：`src/server/` 分 routes / services / store / middleware 四层，AGENTS.md §5 的 P0 端点全部实装。
 - **剧本数据管线**：`data/scripts/*.json` 为唯一数据源，前后端读同一批文件；新增剧本零代码改动。
 - **剧本校验器**：`src/utils/scriptSchema.ts` + `npm run check:scripts`，坏数据在构建期就被拦下。
 - **AI 推理助手**：`POST /api/ai/hint` 接 OpenAI，8 秒超时，无 Key / 超时 / 结构不合规一律降级为确定性结果。
@@ -24,6 +24,7 @@
 - **真实后端验收脚本**：`npm run smoke:api`，一条命令走完建房→加入→选角→开局→推进→投票→结算。
 - **四本可玩剧本**：雾夜庄园、深海回音、石楼童谣、末班列车，全部满足「每个角色至少一条私密线索」。
 - 新增 `docs/script-format.md`：剧本数据填写规范与当前清单。
+- **真实后端端到端测试**：`tests/api.e2e.test.ts` —— 在进程内起真实 Express（随机端口 + 临时 `STORE_FILE`），覆盖安全红线、错误码契约与完整一局；`npm test` 从 16 项增至 34 项，不再依赖手动起服务。
 
 ### 变更
 
@@ -35,6 +36,9 @@
 - 房间等运行时状态先落 `.data/rooms.json`（零依赖实现）；`prisma/schema.prisma` 已按 §4 建好作为迁移目标。
 - `ApiError` 下沉到 `src/utils/apiError.ts`，供后端复用而不依赖浏览器环境。
 - 状态机规则统一在 `src/mocks/mockEngine.ts`，Mock 与真实后端同源，不存在两套实现。
+- 后端目录由根目录 `server/` 迁入 `src/server/`（对齐 AGENTS.md 与 PR #2 的定稿位置）；`dev:api`、`tsconfig.server.json`、文档与注释引用同步更新。
+- `src/server/index.ts` 拆出 `createApp()` / `startServer()`：被 import 时不再监听端口，供测试复用；直接执行时行为不变。
+- CI 的 `project-checks` 增加 `actions/setup-node@v4`（Node 22）：`check:scripts` 与 `smoke:api` 依赖 `node --experimental-strip-types`（需 ≥ 22.6），runner 自带的是 20.x。
 
 ### 安全
 
@@ -46,6 +50,8 @@
 
 - 投票平票时不再把「并列第一」当成定论（`topVotedCharacterId` 返回 `null`，`isCorrect` 为 `false`）。
 - 补《雾夜庄园》缺失的两条私密线索（林墨、白榆），使四本剧本统一满足人均一条底牌。
+- `DATABASE_URL` 里 SQLite 的相对路径是相对 `prisma/schema.prisma` 所在目录解析的，原值 `file:./prisma/dev.db` 会落到 `prisma/prisma/dev.db`；改为 `file:./dev.db`，落点恢复为 `prisma/dev.db`。
+- `.gitignore` 末行曾被以 GBK 写入，导致整份文件不是合法 UTF-8（`check-repo.sh` 的编码检查与文件读取都会失败）；已重写为合法 UTF-8。
 
 ## [0.1.0] - 2026-10-18
 

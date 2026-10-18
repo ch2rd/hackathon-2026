@@ -141,16 +141,16 @@ GET /api/rooms/:roomId/context?playerId=
 - [x] Express 路由 + 服务层（真实模式）—— 全部 P0 端点已实现并通过全流程冒烟
 - [x] `POST /api/ai/hint` 接 OpenAI，8 秒超时降级 Mock
 - [ ] `prisma/schema.prisma` 迁移：运行时状态目前落在 `.data/rooms.json`
-      （`server/store/roomStore.ts`，零依赖实现）；schema 已按 §4 建好，
+      （`src/server/store/roomStore.ts`，零依赖实现）；schema 已按 §4 建好，
       换 Prisma 时只需替换该文件，路由与服务层不动
 
 ## 九、实现说明（真实模式）
 
 | 层 | 位置 | 说明 |
 | --- | --- | --- |
-| 路由 | `server/routes/` | 只校验入参、套 `{ data }` / `{ data, total }` 壳 |
-| 服务 | `server/services/` | 业务逻辑；**状态机规则复用 `src/mocks/mockEngine.ts`**，与 Mock 完全同源 |
-| 存储 | `server/store/roomStore.ts` | 房间/玩家/投票；读-改-写串行，失败不落盘 |
+| 路由 | `src/server/routes/` | 只校验入参、套 `{ data }` / `{ data, total }` 壳 |
+| 服务 | `src/server/services/` | 业务逻辑；**状态机规则复用 `src/mocks/mockEngine.ts`**，与 Mock 完全同源 |
+| 存储 | `src/server/store/roomStore.ts` | 房间/玩家/投票；读-改-写串行，失败不落盘 |
 | 剧本 | `data/scripts/*.json` | 静态内容，前后端读同一批文件；新增剧本不需要 seed |
 
 安全红线（每次改动都要复验）：
