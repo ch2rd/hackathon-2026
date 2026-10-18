@@ -1,11 +1,16 @@
 /**
- * 游戏音频引擎（B 维护）——纯 Web Audio API 程序化合成，零音频文件、零新依赖。
+ * 游戏音频引擎（B 维护合成层，C 扩展文件层）——Web Audio API 程序化合成 + 一层音频文件。
  *
  * 设计：
- * - BGM 按 RoomStatus 分阶段（waiting 稀疏雨夜氛围 → voting 心跳低音 → ended 定音）；
- * - 音效短小（点击/雷鸣/翻页/投票落槌/结局和弦），全部即时合成；
+ * - BGM 分两层叠加，各有独立音量：
+ *   ① **程序化层**：按 RoomStatus 分阶段的合成音
+ *      （waiting 稀疏雨夜氛围 → voting 心跳低音 → ended 定音），负责"随阶段变化"；
+ *   ② **文件层**：`public/audio/universfield-suspenseful-dark-background.mp3` 低音量铺底，
+ *      负责合成音给不出的真实混响与低频质感（改 `AMBIENCE_VOLUME` 即可调比例）。
+ * - 音效短小（点击/雷鸣/翻页/投票落槌/结局和弦），全部即时合成，不占额外文件；
  * - 浏览器自动播放策略：AudioContext 只在用户点「声音开关」时创建；
- * - 开关状态持久化 localStorage（key: truth-bureau:audio），默认关闭。
+ * - 开关状态持久化 localStorage（key: truth-bureau:audio），默认关闭；
+ * - 文件层必须可降级：文件缺失 / 解码失败 / 环境不支持时，静默退回纯程序化 BGM，不抛错。
  *
  * 注意：setStage/sfx 在未开启时是空操作，且绝不触碰 AudioContext——
  * 保证 jsdom 测试环境（无 AudioContext）下页面效果安全。
@@ -24,6 +29,11 @@ export type SfxName =
   | 'revealTie';
 
 const STORAGE_KEY = 'truth-bureau:audio';
+
+/** 文件层：悬疑感铺底乐，与程序化合成层叠加 */
+const AMBIENCE_SRC = '/audio/universfield-suspenseful-dark-background.mp3';
+/** 文件层音量（0~1）。独立于 bgmGain 的第三层，压低以免盖过合成层与音效 */
+const AMBIENCE_VOLUME = 0.12;
 
 /** 各阶段的音阶（A 小调系，越紧张音域越低、节奏越密） */
 const STAGE_SCALES: Record<AudioStage, number[]> = {
@@ -53,6 +63,10 @@ class GameAudioEngine {
   private heartbeat = 0;
   stage: AudioStage = 'waiting';
   enabled = false;
+  /** 文件层底噪的元素与音频节点；声音未开启时恒为 null */
+  private ambienceEl: HTMLAudioElement | null = null;
+  private ambienceGain: GainNode | null = null;
+  private ambienceSource: MediaElementAudioSourceNode | null = null;
 
   constructor() {
     try {
@@ -171,9 +185,11 @@ class GameAudioEngine {
     this.nextNoteAt = ctx.currentTime + 0.5;
     this.heartbeat = 0;
     this.schedulerId = setInterval(() => this.schedule(), 120);
+    this.startAmbience();
   }
 
   private stopBgm(): void {
+    this.stopAmbience();
     if (this.schedulerId) {
       clearInterval(this.schedulerId);
       this.schedulerId = null;
@@ -186,6 +202,50 @@ class GameAudioEngine {
       }
     }
     this.droneOscs = [];
+  }
+
+  /**
+   * 启动文件层底噪。
+   *
+   * 只在 `startBgm()` 内调用——此时 AudioContext 已经由用户手势创建，
+   * 满足浏览器的自动播放策略。任何异常都吞掉：宁可只剩程序化合成层，
+   * 也不能让游戏页因为一段背景音报错（部署漏带 public/audio 时尤其重要）。
+   */
+  private startAmbience(): void {
+    const ctx = this.ctx;
+    const master = this.masterGain;
+    if (!ctx || !master || typeof Audio === 'undefined') return;
+    try {
+      if (!this.ambienceEl || !this.ambienceSource) {
+        const el = new Audio(AMBIENCE_SRC);
+        el.loop = true;
+        el.preload = 'none';
+        const gain = ctx.createGain();
+        gain.gain.value = AMBIENCE_VOLUME;
+        gain.connect(master);
+        const source = ctx.createMediaElementSource(el);
+        source.connect(gain);
+        this.ambienceEl = el;
+        this.ambienceGain = gain;
+        this.ambienceSource = source;
+      }
+      if (this.ambienceGain) this.ambienceGain.gain.value = AMBIENCE_VOLUME;
+      void this.ambienceEl.play().catch(() => undefined);
+    } catch {
+      // 环境不支持（jsdom / 旧浏览器）或加载失败：退回纯程序化 BGM
+      this.ambienceEl = null;
+      this.ambienceGain = null;
+      this.ambienceSource = null;
+    }
+  }
+
+  /** 暂停文件层底噪。不销毁元素，重新开启声音时可直接续播。 */
+  private stopAmbience(): void {
+    try {
+      this.ambienceEl?.pause();
+    } catch {
+      /* 环境不支持则忽略 */
+    }
   }
 
   /** 前瞻调度器：把接下来 0.3 秒内该响的音排进 AudioContext 时间线 */
