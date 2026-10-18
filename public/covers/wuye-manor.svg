@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1200 1500" fill="none" role="img" aria-labelledby="title description">
+  <title id="title">雾夜庄园 · 雨中的钟楼</title>
+  <desc id="description">冷蓝雾气笼罩孤立的古老庄园，铁门后的石径通向亮着暖灯的宅邸与钟楼。细雨持续落下，雾缓缓流动，远处天空偶尔泛起柔和电光。封面无故事谜底，支持减少动态效果设置。</desc>
+  <defs>
+    <linearGradient id="sky" x1="600" y1="0" x2="600" y2="1500" gradientUnits="userSpaceOnUse"><stop stop-color="#080d16"/><stop offset=".38" stop-color="#243d50"/><stop offset=".69" stop-color="#101e29"/><stop offset="1" stop-color="#060b11"/></linearGradient>
+    <radialGradient id="moonlight"><stop stop-color="#bfd0cc" stop-opacity=".34"/><stop offset=".25" stop-color="#8faeb9" stop-opacity=".15"/><stop offset="1" stop-color="#66899d" stop-opacity="0"/></radialGradient>
+    <linearGradient id="stone" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#48565d"/><stop offset=".45" stop-color="#26343d"/><stop offset="1" stop-color="#101a23"/></linearGradient>
+    <linearGradient id="front" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#45505a"/><stop offset=".62" stop-color="#27323c"/><stop offset="1" stop-color="#131e28"/></linearGradient>
+    <linearGradient id="roof" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#1a2731"/><stop offset=".55" stop-color="#101820"/><stop offset="1" stop-color="#070e15"/></linearGradient>
+    <linearGradient id="path" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#7c8279" stop-opacity=".24"/><stop offset=".3" stop-color="#5b686d" stop-opacity=".32"/><stop offset="1" stop-color="#1f2c35" stop-opacity=".12"/></linearGradient>
+    <linearGradient id="warm" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#b59a66"/><stop offset=".52" stop-color="#b58b4f"/><stop offset="1" stop-color="#4f3c28"/></linearGradient>
+    <linearGradient id="warmReflection" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#c6aa6d" stop-opacity=".35"/><stop offset="1" stop-color="#ac9054" stop-opacity="0"/></linearGradient>
+    <linearGradient id="mist"><stop stop-color="#adc9cf" stop-opacity="0"/><stop offset=".4" stop-color="#adc9cf" stop-opacity=".12"/><stop offset=".7" stop-color="#adc9cf" stop-opacity=".2"/><stop offset="1" stop-color="#adc9cf" stop-opacity="0"/></linearGradient>
+    <radialGradient id="glow"><stop stop-color="#d9bc7b" stop-opacity=".42"/><stop offset=".23" stop-color="#d9bc7b" stop-opacity=".17"/><stop offset="1" stop-color="#c5a66a" stop-opacity="0"/></radialGradient>
+    <radialGradient id="vignette"><stop offset=".25" stop-color="#02070d" stop-opacity="0"/><stop offset=".72" stop-color="#02070d" stop-opacity=".3"/><stop offset="1" stop-color="#02070d" stop-opacity=".9"/></radialGradient>
+    <pattern id="slate" width="55" height="25" patternUnits="userSpaceOnUse"><path d="M0 24H55M27 0V24M0 12H55" stroke="#9daab1" stroke-opacity=".075" stroke-width="1"/></pattern>
+    <pattern id="rain" width="170" height="190" patternUnits="userSpaceOnUse"><path d="M15 10 2 55M83 80 68 130M156 2 139 62M125 156 115 190M43 153 33 190" stroke="#c5d8de" stroke-opacity=".24" stroke-width="1"/></pattern>
+    <filter id="paper" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".68" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter>
+    <g id="window"><path d="M-13 42V3A13 13 0 0 1 13 3V42Z" fill="#080f17" stroke="#637079" stroke-opacity=".7" stroke-width="3"/><path d="M-9 38V4A9 9 0 0 1 9 4V38Z" fill="url(#warm)"/><path d="M0-5V39M-10 15H10" stroke="#151b22" stroke-width="3"/><path d="M-20 46H20M-18 49H18" stroke="#859096" stroke-opacity=".55" stroke-width="2"/></g>
+    <g id="darkWindow"><path d="M-13 42V3A13 13 0 0 1 13 3V42Z" fill="#080f17" stroke="#637079" stroke-opacity=".6" stroke-width="3"/><path d="M0-7V42M-12 15H12" stroke="#34414b" stroke-width="2"/><path d="M-20 46H20" stroke="#65747e" stroke-opacity=".5" stroke-width="2"/></g>
+    <g id="spire"><path d="M-7 0 0-33 7 0Z" fill="#0a131b"/><path d="M0-33V-51M-11-43H11" stroke="#5b686c" stroke-width="2"/></g>
+    <g id="gateBar"><path d="M0 0V234M-4 8 0-10 4 8Z" fill="#182129" stroke="#52616a" stroke-opacity=".6" stroke-width="2"/></g>
+    <g id="lantern"><path d="M-12-28 0-41 12-28 16-22H-16Z" fill="#0a1117" stroke="#6b715e" stroke-width="1.5"/><path d="M-12-21-9 13H9L12-21Z" fill="url(#warm)" stroke="#111b22" stroke-width="3"/><path d="M0-21V13M-8 15 0 23 8 15" stroke="#0b131b" stroke-width="3"/><ellipse cy="-5" rx="60" ry="72" fill="url(#glow)"/></g>
+  </defs>
+  <style>
+    .rain{animation:rainfall 1.35s linear infinite}.mist-a{animation:drift 22s ease-in-out infinite}.mist-b{animation:drift 29s ease-in-out infinite reverse}.lightning{animation:skyglow 18s ease-in-out infinite}.warm-lights{animation:candle 9s ease-in-out infinite}.water{animation:ripple 7s ease-in-out infinite}
+    @keyframes rainfall{from{transform:translate(0,-190px)}to{transform:translate(0,0)}}
+    @keyframes drift{0%,100%{transform:translateX(-42px);opacity:.68}50%{transform:translateX(42px);opacity:1}}
+    @keyframes skyglow{0%,71%,79%,100%{opacity:0}75%{opacity:.24}}
+    @keyframes candle{0%,100%{opacity:.88}32%{opacity:1}57%{opacity:.84}78%{opacity:.96}}
+    @keyframes ripple{0%,100%{opacity:.42;transform:translateX(-4px)}50%{opacity:.76;transform:translateX(4px)}}
+    @media(prefers-reduced-motion:reduce){.rain,.mist-a,.mist-b,.lightning,.warm-lights,.water{animation:none}.lightning{opacity:0}}
+  </style>
+  <path fill="url(#sky)" d="M0 0h1200v1500H0z"/>
+  <ellipse cx="695" cy="436" rx="520" ry="430" fill="url(#moonlight)"/>
+  <circle cx="756" cy="397" r="61" fill="#b1c0bf" opacity=".32"/>
+  <path d="M711 346c21-16 49-13 64-7-33 6-48 23-54 48-8 30 0 50 13 66-40-18-52-75-23-107Z" fill="#d1d8c8" opacity=".18"/>
+  <path d="M-80 414c150-42 193 14 326-22s166 5 292-17 198-11 293 11 202-38 370-12M-60 478c148-52 265-5 356-23s180-47 290-15 272-15 402-3 195-1 261-25" stroke="#8397a3" stroke-width="35" opacity=".06"/>
+  <path class="lightning" d="m965 175-42 114 29-3-60 116 23-83-28 5 40-149Z" fill="#c9e4e8" opacity="0"/>
+  <path class="lightning" d="M0 0h1200v900H0z" fill="#a7c6d7" opacity="0"/>
+  <!-- A distant ring of bare trees makes the estate feel cut off from the world. -->
+  <g fill="#0d1c28" stroke="#243847" stroke-opacity=".34" stroke-width="5">
+    <path d="m116 1004 18-409-48-158 15-86 11 98 32 93 12-142 12-88 5 156 48-85 27-36-27 74-52 112 6 157 44-62 60-28-62 54-40 89-3 261Z"/>
+    <path d="m1011 1009 24-355-37-120-42-53 53 34 34 75 10-174 43-109-22 137 2 110 47-78 62-35-51 57-49 111-3 131 44-31 61-14-65 37-42 62 5 215Z"/>
+    <path d="m287 1000 5-321-45-93-27-24 45 16 31 51 10-168 18-68-1 203 43-70 36-29-34 49-42 103 5 355Z"/>
+  </g>
+  <path d="M0 962c152-52 230-20 342-56s283-29 432-20 315 5 426 53v561H0Z" fill="#0a151e"/>
+  <!-- Main house: staggered roof planes, a recessed entrance and a separate clock tower. -->
+  <path d="m291 658 196-72 236 28 100 57-46 21-296-46-161 58Z" fill="url(#roof)" stroke="#5b6b75" stroke-opacity=".48" stroke-width="3"/>
+  <path d="m314 700 168-52 284 44v222l-270 38-182-43Z" fill="url(#stone)"/>
+  <path d="m482 648 284 44v222l-284 38Z" fill="url(#front)"/>
+  <path d="m314 700 168-52v304l-168-43Z" fill="#25353f"/>
+  <path d="m303 697 177-57 295 45v15l-295-43-177 55Z" fill="#6e7a7b" opacity=".5"/>
+  <path d="m323 807 160-30 277 22M323 904l160 37 277-36" stroke="#819095" stroke-opacity=".3" stroke-width="5"/>
+  <path d="m335 724 126-40v213l-126-21Z" fill="url(#slate)" opacity=".6"/>
+  <path d="M488 706h269v198H488Z" fill="url(#slate)" opacity=".8"/>
+  <path d="m390 605 35-12 4-65-33-7Z" fill="#23313b" stroke="#57636a" stroke-opacity=".55" stroke-width="3"/>
+  <path d="m389 528 44 8v-14l-44-9ZM633 615v-71l27 5v72Z" fill="#1c2a34" stroke="#637178" stroke-opacity=".5" stroke-width="3"/>
+  <path d="m634 546 30 5v-13l-30-5Z" fill="#34434d"/>
+  <path d="m504 688 69-95 70 111Z" fill="#18232e" stroke="#78848a" stroke-opacity=".55" stroke-width="4"/>
+  <path d="m521 689 53-73 52 88Z" fill="#34434e"/>
+  <path d="m565 643-12 26h40l-15-26Z" fill="#0d1720"/>
+  <use xlink:href="#spire" transform="translate(574 589)"/>
+  <g opacity=".76"><use xlink:href="#darkWindow" transform="translate(348 729) scale(.8 1)"/><use xlink:href="#darkWindow" transform="translate(407 709) scale(.9 1)"/><use xlink:href="#darkWindow" transform="translate(523 714)"/><use xlink:href="#darkWindow" transform="translate(691 737)"/><use xlink:href="#darkWindow" transform="translate(697 831)"/></g>
+  <g class="warm-lights"><use xlink:href="#window" transform="translate(459 693) scale(.8 1)"/><use xlink:href="#window" transform="translate(607 727)"/><use xlink:href="#window" transform="translate(528 818)"/><use xlink:href="#window" transform="translate(410 817) scale(.85 1)"/></g>
+  <path d="m570 931 2-83c0-41 62-41 62 0v75Z" fill="#07111a" stroke="#718083" stroke-opacity=".5" stroke-width="5"/>
+  <path d="M582 853c0-24 40-24 40 0v72l-40 6Z" fill="url(#warm)" opacity=".47"/>
+  <path d="M602 828v100M583 860h40" stroke="#0b151d" stroke-width="4"/>
+  <path d="m560 933 81-10 23 13-122 16Zm-18 21 123-16 25 16-168 22Z" fill="#5b686d" stroke="#a8afa8" stroke-opacity=".2" stroke-width="2"/>
+  <!-- Belfry: the cold clock face sits above arched openings. -->
+  <path d="m754 606 91-32 99 43v304l-99 36-91-43Z" fill="url(#stone)" stroke="#63727b" stroke-opacity=".35" stroke-width="3"/>
+  <path d="m845 574 99 43v304l-99 36Z" fill="#1b2a35"/>
+  <path d="m741 603 104-119 115 137-116-36Z" fill="url(#roof)" stroke="#6d7e86" stroke-opacity=".65" stroke-width="3"/>
+  <path d="m768 590 77-89 79 100-79-29Z" fill="#24323d"/>
+  <path d="M845 485v-52m-20 22 40-1" stroke="#839196" stroke-opacity=".65" stroke-width="3"/>
+  <path d="m745 620 100-31 111 39v16l-111-36-100 30ZM747 735l98-21 108 29v13l-108-26-98 20ZM748 891l97 5 109-24v15l-109 25-97-6Z" fill="#6d7b80" opacity=".46"/>
+  <path d="M779 715v-47c0-32 41-39 41-9v47Z" fill="#0a121a" stroke="#536772" stroke-width="3"/>
+  <path d="M867 708v-41c0-29 44-13 44 17v37Z" fill="#090f16" stroke="#435762" stroke-width="3"/>
+  <path d="m790 667 9-11 10 6v43l-19 5Z" fill="#4c626b" opacity=".25"/>
+  <ellipse cx="797" cy="790" rx="30" ry="35" fill="#16242e" stroke="#8e9c9c" stroke-opacity=".75" stroke-width="4"/>
+  <ellipse cx="797" cy="790" rx="24" ry="29" fill="#c1c5b2" opacity=".7"/>
+  <path d="M797 765v5m0 40v5m-20-25h5m30 0h5m-20 0-1-17m1 17 13-3" stroke="#24323a" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="797" cy="790" r="3" fill="#29363a"/>
+  <use xlink:href="#darkWindow" transform="translate(886 798) scale(1.1 1.3)"/>
+  <use xlink:href="#window" class="warm-lights" transform="translate(793 855) scale(.75 .85)"/>
+  <g stroke="#8f9fa5" stroke-opacity=".16"><path d="m763 646 68-19m-68 123 68-12m-68 27 68-10m-68 27 27-4m25-3 16-2m-68 45 68-5m-68 33 68-3m-68 36 68-1m26-211 65 20m-65 22 65 19m-65 43 65 16m-65 25 65 15m-65 23 65 13m-65 24 65 11m-65 28 65 8"/></g>
+  <g opacity=".58"><ellipse cx="560" cy="904" rx="348" ry="41" fill="url(#mist)"/><ellipse class="mist-a" cx="690" cy="868" rx="550" ry="42" fill="url(#mist)"/></g>
+  <!-- Stone walk and broken reflections lead the eye through the iron gate. -->
+  <path d="m570 953 84-18 325 565H239Z" fill="url(#path)"/>
+  <path d="m580 969-182 531m239-552 191 552" stroke="#9da9ac" stroke-opacity=".16" stroke-width="3"/>
+  <path d="m532 1050 162-5m-194 73 236-1m-268 81 316 1m-353 92 402 1m-447 118 503 4" stroke="#a1b1b6" stroke-opacity=".11" stroke-width="2"/>
+  <path d="m595 984 32-5 40 227-98 4Z" fill="url(#warmReflection)"/>
+  <g class="water" stroke="#ae9e73" stroke-width="2"><path d="m573 1004 64-2m-91 25 106-2m-71 27 43-1m-66 28 87-3m-64 28 52-1m-79 46 104-2m-124 28 150-3"/></g>
+  <g fill="#101b23" stroke="#40525b" stroke-width="2"><path d="m117 1123 8-212 46-18 34 19 11 225Z"/><path d="m114 916 12-20 45-17 33 18 15 20-47-12Z"/><path d="m112 1123 61-14 48 23v20l-52-19-57 12Z"/><path d="m986 1133 9-223 34-17 46 18 10 214Z"/><path d="m984 917 13-20 33-18 45 17 13 20-56-11Z"/><path d="m982 1133 48-23 59 13v23l-59-13-48 20Z"/></g>
+  <g fill="#0a131b" stroke="#5c6b6f" stroke-width="2" stroke-opacity=".6"><path d="m197 975 189-47 14 242-197-53Z"/><path d="m1001 975-188-47-14 242 197-53Z"/></g>
+  <g stroke="#6b7979" stroke-opacity=".5" stroke-width="3"><path d="m203 1010 184-44m-184 123 193 53m-176-174 4 146m23-153 4 160m22-167 6 174m20-181 8 189m19-197 10 206m17-213 12 223M997 1010l-183-44m183 123-192 53m176-174-4 146m-23-153-4 160m-22-167-6 174m-20-181-8 189m-19-197-10 206m-17-213-12 223"/><path d="m236 1008 31 47 27-56 34 81 32-98m605 26-31 47-27-56-34 81-32-98" stroke-opacity=".3"/></g>
+  <g fill="#17242b" stroke="#6b7979" stroke-opacity=".45"><path d="m235 973 5-23 7 21m16-6 6-24 7 21m14-5 6-24 7 21m14-6 6-24 7 21m14-6 6-24 7 21m14-6 6-24 7 21m-15-17-6-24-7 21m-14-6-6-24-7 21m-14-5-6-24-7 21m-14-6-6-24-7 21m-14-6-6-24-7 21m-14-6-6-24-7 21"/></g>
+  <g class="warm-lights"><use xlink:href="#lantern" transform="translate(166 879) scale(.85)"/><use xlink:href="#lantern" transform="translate(1034 879) scale(.85)"/></g>
+  <g class="mist-b"><ellipse cx="560" cy="1086" rx="770" ry="48" fill="url(#mist)"/><ellipse cx="825" cy="1012" rx="510" ry="28" fill="url(#mist)"/></g>
+  <g class="rain" opacity=".45"><path d="M-70-190h1340v1900H-70z" fill="url(#rain)"/></g>
+  <!-- Foreground silhouettes frame the illustration without competing with page text. -->
+  <path d="m0 1500 4-313 40-174-12-122 22 72 14 107 39-77 37-24-43 65-43 115-9 351Zm1200 0-14-322-31-125 9-116-21 86-8 91-34-66-55-44 46 61 32 108 23 327Z" fill="#050c13"/>
+  <path d="m0 1421 105-32 43 26 31-45 41 27 46-12 22 43 58-9 58 81H0Zm1200-10-90-22-56 26-21-45-40 34-46-16-35 42-53-2-55 72h496Z" fill="#030a11"/>
+  <path d="M0 0h1200v1500H0z" filter="url(#paper)" opacity=".045" style="mix-blend-mode:soft-light"/>
+  <path d="M0 0h1200v1500H0z" fill="url(#vignette)"/>
+</svg>

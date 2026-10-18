@@ -18,7 +18,7 @@ export function ScriptCard({ script, actCount }: ScriptCardProps) {
   return (
     <Card interactive className="group overflow-hidden p-0">
       <Link to={`/scripts/${script.id}`} className="block">
-        <ScriptCover title={script.title} genre={script.genre} className="aspect-[4/3]" />
+        <ScriptCover title={script.title} genre={script.genre} coverUrl={script.coverUrl} className="aspect-[4/3]" />
         <div className="space-y-4 p-5">
           <div>
             <h3 className="font-display text-lg text-paper">{script.title}</h3>

@@ -112,6 +112,7 @@ export function validateScriptBundle(raw: unknown, expectedId?: string): BundleV
     if (!isText(item.name)) errors.push(`${where}.name 缺失`);
     if (!isText(item.identity)) errors.push(`${where}.identity 缺失`);
     if (!isText(item.avatarUrl)) errors.push(`${where}.avatarUrl 缺失`);
+    if (item.backgroundStory !== undefined && !isText(item.backgroundStory)) errors.push(`${where}.backgroundStory 必须是非空文本`);
     if (!isText(item.publicIntro)) errors.push(`${where}.publicIntro 缺失`);
     if (!isText(item.secret)) errors.push(`${where}.secret 缺失（这是玩家的底牌，不能留空）`);
     if (!isNumber(item.age)) errors.push(`${where}.age 必须是数字`);

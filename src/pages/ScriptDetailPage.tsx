@@ -55,7 +55,7 @@ export default function ScriptDetailPage() {
     <div className="space-y-12 pb-4">
       <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr]">
         <div>
-          <ScriptCover title={script.title} genre={script.genre} className="aspect-[4/5] w-full" />
+          <ScriptCover title={script.title} genre={script.genre} coverUrl={script.coverUrl} priority className="aspect-[4/5] w-full" />
         </div>
 
         <div className="space-y-7">

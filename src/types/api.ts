@@ -5,7 +5,14 @@
  * 与 AGENTS.md §5 对齐，改动必须走 §3.6 变更流程。
  */
 
-import type { CharacterPublic, Clue, Player, Room, ScriptAct } from './models';
+import type {
+  CharacterPublic,
+  ChatChannel,
+  Clue,
+  Player,
+  Room,
+  ScriptAct,
+} from './models';
 
 /**
  * AGENTS.md §5.2 的错误码，外加两个前端兜底码（不会由服务端返回）。
@@ -56,4 +63,11 @@ export interface RoomContext {
   characters: CharacterPublic[];
   clues: Clue[];
   murdererCharacterId: string | null;
+}
+
+export interface SendMessageInput {
+  channel: ChatChannel;
+  receiverPlayerId?: string;
+  content: string;
+  clueId?: string;
 }

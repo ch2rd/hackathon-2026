@@ -1090,6 +1090,27 @@ chore: 配置 Tailwind
 ---
 
 > 记住：**先对齐，再并行；先跑通，再美化；先主路径，再加分项。**
+
+## 2026-10-18 公聊与私聊（用户授权 B/C 联动）
+
+保持 RoomStatus 不变；Room 新增可选 gameplayPhase：introduction / search / discussion。
+选角准备完毕 → 第一幕出场公聊（介绍身份、相互认识）→ 搜证 → 讨论（公聊 / 双人私聊）→ 下一幕搜证 → 讨论 → 最后一幕讨论结束进入投票。
+房主通过 next-act 逐环节推进；非房主不能推进；旧房间无 gameplayPhase 时按搜证处理。
+POST /api/rooms/:roomId/messages：{ playerId, channel: 'public' | 'direct', receiverPlayerId?, content, clueId? } → { data: RoomState }。
+content 为 1～1000 字；分享 clueId 时由引擎读取本人已获得的线索原文。出场只允许公聊；搜证阶段不能发言；讨论可公聊、私聊。
+RoomState.messages 随原有 2 秒轮询同步，服务端只返回公聊与本人收发的私聊。Mock localStorage 和服务端运行时存储均保留消息，旧存档缺失消息按空数组处理。
+私密线索分享前二次确认；公开介绍只使用角色 publicIntro，绝不自动填入 secret。
+
+
+## 2026-10-18 个人故事阅读（用户需求修正）
+
+开局流程调整为：选角准备完成 → reading（个人故事、秘密、任务）→ 全员确认已读 → introduction（公聊自我介绍）→ 搜证 → 讨论。
+GameplayPhase 新增 reading；Room.storyReadPlayerIds 为可选 string[]，用于轮询和刷新恢复进度。
+POST /api/rooms/:roomId/confirm-story-read，{ playerId } → { data: RoomState }；必须是本房成员，确认去重且可重试。最后一人确认后全员进入 introduction。
+阅读期间禁止聊天、next-act 和演示结束；玩家不能被房主提前带离阅读。
+Character.backgroundStory 为可选的私密故事，仅随 me.character 返回；CharacterPublic 不包含。四个现有剧本都补齐了个人故事。
+游戏页在介绍和后续搜证/讨论中提供「回看我的故事与个人任务」，旧剧本无 backgroundStory 时使用公开介绍作为回退。
+旧房间保留当前环节；新建一局体验完整的阅读 → 自我介绍流程。
 ---
 
 ## 附录 C：前端 Skill 组合（2026-10-18）
@@ -1110,3 +1131,10 @@ frontend-app-builder + frontend-design
 ```
 
 「可探索房间」的视觉与交互方案见 `docs/interactive-room.md`。
+
+
+## 共享分支集成说明
+
+与 main 的每幕确认逻辑合并：introduction → search、search → discussion 由房主推进；仅 discussion → 下一幕/投票要求全员确认 isReady。
+进入游戏、进入讨论、切幕和进入投票时清空讨论确认；reading 使用独立的 storyReadPlayerIds。
+场景探索保留在 search 阶段；角色画像、出场动画、回忆滤镜、音效均保留。联网多人模式启动方法见 README 3.8。

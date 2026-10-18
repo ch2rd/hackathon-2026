@@ -14,7 +14,7 @@ import { toCatalog, type ScriptCatalog } from '../../mocks/mockEngine';
 import { ApiError } from '../../utils/apiError';
 import { validateScriptBundle } from '../../utils/scriptSchema';
 
-const scriptsDir = process.env.SCRIPTS_DIR ?? join(process.cwd(), 'data', 'scripts');
+const scriptsDir = process.env.SCRIPTS_DIR?.trim() || join(process.cwd(), 'data', 'scripts');
 
 let cached: ScriptCatalog | null = null;
 
