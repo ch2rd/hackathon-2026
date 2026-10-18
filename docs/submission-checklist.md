@@ -9,14 +9,14 @@
 - [ ] 无 `node_modules/`、`dist/`、模型权重、原始数据集等大文件（单文件 < 5 MiB）。
 - [ ] 从干净目录克隆后，严格按 `README.md` 的「快速开始」能跑起来（**让没写过这个项目的人试一次**）。
 - [ ] `CHANGELOG.md` 的 `[Unreleased]` 已整理为本次提交版本。
-- [ ] `ATTRIBUTIONS.md` 里每个新增依赖、模型、素材都已登记。
+- [x] `ATTRIBUTIONS.md` 里每个新增依赖、模型、素材都已登记。
 
 ## 二、T-2 小时：文档
 
 - [ ] `README.md` 顶部信息填全：赛道、团队、成员、提交版本、演示链接。
-- [ ] `docs/product.md` 无「待填写」残留。
+- [x] `docs/product.md` 无「待填写」残留。
 - [ ] `docs/architecture.md` 的架构图与实际实现一致（图不是画的，是抄的）。
-- [ ] `docs/scoring.md` 每个评分维度都有证据位置，状态已更新。
+- [x] `docs/scoring.md` 每个评分维度都有证据位置，状态已更新。
 - [ ] `AGENTS.md` 附录 B 变更记录与实际一致。
 
 ## 三、T-1 小时：演示材料
@@ -43,8 +43,8 @@
 
 | 提交物 | 形式 | 位置 | 状态 | 负责人 |
 | --- | --- | --- | --- | --- |
-| 源代码 | 仓库链接 | 待填写 | 未完成 | 待填写 |
-| 项目文档 | 仓库 `docs/` | `docs/` | 未完成 | 待填写 |
+| 源代码 | 仓库链接 | <https://github.com/ch2rd/hackathon-2026> | 进行中（尚在 `feat/*` 分支，未合入 `main`） | 全员 |
+| 项目文档 | 仓库 `docs/` | `docs/`（product / game-flow / api / script-format / architecture / scoring / demo-script） | 进行中（同待合入 `main`） | 全员 |
 | 演示视频 | 链接（≤ N 分钟） | 待填写 | 未完成 | 待填写 |
 | 演示 PPT | 文件 | `assets/` | 未完成 | 待填写 |
 | 在线 Demo | 链接 | 待填写 | 未完成 | 待填写 |
