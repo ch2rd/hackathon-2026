@@ -71,9 +71,26 @@ export function readyCount(state: RoomState): number {
   return state.players.filter((p) => p.characterId !== null && p.isReady).length;
 }
 
-/** 房主可否点「下一幕」（playing 且是房主）。 */
+/** 当前幕是否所有玩家都已确认讨论完成。 */
+export function allPlayersReady(state: RoomState): boolean {
+  return state.players.length > 0 && state.players.every((player) => player.isReady);
+}
+
+/** 当前幕确认进度。 */
+export function readyProgress(state: RoomState): { confirmed: number; total: number } {
+  return {
+    confirmed: state.players.filter((player) => player.isReady).length,
+    total: state.players.length,
+  };
+}
+
+/** 房主可否点「下一幕」（playing、房主且全员确认本幕讨论完成）。 */
 export function canNextAct(state: RoomState, playerId: string): boolean {
-  return state.room.status === 'playing' && isHostPlayer(state, playerId);
+  return (
+    state.room.status === 'playing' &&
+    isHostPlayer(state, playerId) &&
+    allPlayersReady(state)
+  );
 }
 
 /** 当前是否最后一幕（按钮文案「进入投票」用）。 */
