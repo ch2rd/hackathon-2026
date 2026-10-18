@@ -7,6 +7,8 @@
 
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { SfxToggle } from '../components/game/SfxToggle';
+import { playSfx } from '../game/audio';
 import { voteCountsByPlayer } from '../game/selectors';
 import { loadIdentity, useGameStore } from '../stores/gameStore';
 
@@ -38,6 +40,12 @@ export function EndingPage() {
       navigate(`/rooms/${roomId}/play`, { replace: true });
     }
   }, [roomStatus, roomId, navigate]);
+
+  // 结果一出就响一次「揭晓」；只依赖布尔值，避免轮询导致重复播放
+  const hasResult = roomState?.result != null;
+  useEffect(() => {
+    if (hasResult) playSfx('reveal');
+  }, [hasResult]);
 
   if (!roomState) {
     if (error?.code === 'NOT_FOUND') {
@@ -71,7 +79,10 @@ export function EndingPage() {
 
   return (
     <section className="mx-auto flex max-w-2xl flex-col gap-5 p-6">
-      <h1 className="text-center text-2xl font-medium">真相揭晓</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-medium">真相揭晓</h1>
+        <SfxToggle />
+      </div>
 
       <div
         className={[

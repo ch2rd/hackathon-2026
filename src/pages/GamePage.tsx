@@ -15,8 +15,10 @@ import { CharacterIntro } from '../components/game/CharacterIntro';
 import { ClueList } from '../components/game/ClueList';
 import { DemoAdvanceButton } from '../components/game/DemoAdvanceButton';
 import { SceneExplorer } from '../components/game/SceneExplorer';
+import { SfxToggle } from '../components/game/SfxToggle';
 import { VotePanel } from '../components/game/VotePanel';
 import { resolveActScene, resolveMemoryFilter } from '../components/game/visuals';
+import { playSfx } from '../game/audio';
 import {
   canDemoAdvance,
   canNextAct,
@@ -124,9 +126,12 @@ export function GamePage() {
             <span className="ml-2 text-base font-normal text-neutral-400">{roomState.currentAct.title}</span>
           )}
         </h1>
-        <Link to={`/rooms/${roomId}/character`} className="text-sm text-neutral-400 underline">
-          我的角色档案
-        </Link>
+        <div className="flex items-center gap-3">
+          <SfxToggle />
+          <Link to={`/rooms/${roomId}/character`} className="text-sm text-neutral-400 underline">
+            我的角色档案
+          </Link>
+        </div>
       </header>
 
       {status === 'offline' && (
@@ -168,7 +173,10 @@ export function GamePage() {
                 <button
                   type="button"
                   disabled={isActing}
-                  onClick={() => void useGameStore.getState().setReady(true)}
+                  onClick={() => {
+                    playSfx('confirm');
+                    void useGameStore.getState().setReady(true);
+                  }}
                   className="rounded-md border border-emerald-700 bg-emerald-900 px-3 py-2 text-sm font-medium disabled:opacity-50"
                 >
                   本幕讨论完成
@@ -194,13 +202,14 @@ export function GamePage() {
             clues={roomState.me.visibleClues}
             discoveredIds={discoveredClueIds}
             memory={memory}
-            onDiscover={(clue) =>
+            onDiscover={(clue) => {
+              playSfx('clue');
               setDiscoveredClueIds((current) => {
                 const next = new Set(current);
                 next.add(clue.id);
                 return next;
-              })
-            }
+              });
+            }}
           />
 
           {roomState.currentAct && (

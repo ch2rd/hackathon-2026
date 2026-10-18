@@ -1,4 +1,5 @@
 import type { Character } from '../../types/models';
+import { unlockAudio } from '../../game/audio';
 import { CharacterSprite } from './CharacterSprite';
 import { SceneBackdrop } from './SceneBackdrop';
 import { resolveMemoryFilter, resolveSpriteRole, type SceneKey } from './visuals';
@@ -64,7 +65,10 @@ export function CharacterIntro({ character, scene, onEnter }: CharacterIntroProp
 
         <button
           type="button"
-          onClick={onEnter}
+          onClick={() => {
+            unlockAudio(); // 全游戏第一个用户手势：在这里解锁音频
+            onEnter();
+          }}
           className="mt-1 rounded-md border bg-black/40 px-7 py-3 font-medium transition hover:bg-black/70"
           style={{ borderColor: memory.accent, color: memory.accent }}
         >
