@@ -1,6 +1,7 @@
 import { cn } from '../ui/cn';
 import type { CharacterPublic } from '../../types/models';
 import { Card } from '../ui/Card';
+import { CharacterPortrait } from './CharacterPortrait';
 
 interface CharacterCardProps {
   character: CharacterPublic;
@@ -21,9 +22,7 @@ export function CharacterCard({ character, selected = false, disabled = false, o
       onClick={() => !disabled && onSelect?.(character.id)}
     >
       <div className="flex items-start gap-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-gold/30 bg-gradient-to-br from-gold/20 to-crimson/10 font-display text-lg text-gold">
-          {character.name.slice(0, 1)}
-        </div>
+        <CharacterPortrait character={character} size="sm" />
         <div className="min-w-0">
           <h3 className="font-display text-lg text-paper">{character.name}</h3>
           <p className="mt-1 text-xs tracking-[0.18em] text-gold/80">{character.identity}</p>
