@@ -238,6 +238,13 @@ export interface AIHint {
   source: 'llm' | 'mock';
 }
 
+/** 首页 AI DM 问答（演示用，无房间上下文）。 */
+export interface AIChatReply {
+  answer: string;
+  disclaimer: string;
+  source: 'llm' | 'mock';
+}
+
 // ---------- 剧本包：data/scripts/*.json 的文件格式（C 维护）----------
 
 /**

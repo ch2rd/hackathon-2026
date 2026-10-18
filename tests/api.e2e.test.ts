@@ -413,6 +413,17 @@ describe('完整一局（真实 HTTP，不假设哪本是凶手）', () => {
     expect(JSON.stringify(reply.body)).not.toContain(flow.murdererId);
   });
 
+  it('首页 AI DM 问答：无 Key 降级 mock，空问题 400', async () => {
+    const reply = await post('/api/ai/chat', { question: '怎么推理更高效？' });
+    expect(reply.status).toBe(200);
+    expect(data(reply).source).toBe('mock');
+    expect(typeof data(reply).answer).toBe('string');
+
+    const bad = await post('/api/ai/chat', { question: '   ' });
+    expect(bad.status).toBe(400);
+    expect(errorCode(bad)).toBe('VALIDATION_ERROR');
+  });
+
   it('不存在的房间 → 404', async () => {
     const reply = await call(`/api/rooms/room_does_not_exist/state?playerId=${flow.hostId}`);
     expect(reply.status).toBe(404);

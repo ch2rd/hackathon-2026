@@ -7,6 +7,7 @@
  */
 
 import type {
+  AIChatReply,
   AIHint,
   Genre,
   ListResult,
@@ -55,4 +56,5 @@ export interface ApiAdapter {
 
   // ---- AI ----
   getAIHint(roomId: string, playerId: string): Promise<AIHint>;
+  askAiDm(question: string): Promise<AIChatReply>;
 }

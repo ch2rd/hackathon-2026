@@ -8,11 +8,15 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { asyncHandler, parseInput } from '../middleware/errorHandler';
-import { generateHint } from '../services/aiService';
+import { generateChatAnswer, generateHint } from '../services/aiService';
 
 const hintSchema = z.object({
   roomId: z.string().min(1),
   playerId: z.string().min(1),
+});
+
+const chatSchema = z.object({
+  question: z.string().trim().min(1).max(200),
 });
 
 export const aiRouter = Router();
@@ -22,5 +26,13 @@ aiRouter.post(
   asyncHandler(async (req, res) => {
     const { roomId, playerId } = parseInput(hintSchema, req.body);
     res.json({ data: await generateHint(roomId, playerId) });
+  }),
+);
+
+aiRouter.post(
+  '/chat',
+  asyncHandler(async (req, res) => {
+    const { question } = parseInput(chatSchema, req.body);
+    res.json({ data: await generateChatAnswer(question) });
   }),
 );

@@ -158,7 +158,6 @@ describe('GamePage', () => {
     configureRoomsApi(api);
     renderPage('/rooms/:roomId/play', <GamePage />, '/rooms/r1/play');
     expect(await screen.findByText(/雷声过后/)).toBeInTheDocument();
-    expect(screen.getByTestId('ai-hint-card')).toBeInTheDocument();
     expect(screen.getByText('点击房间里的物件，发现隐藏线索')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '搜证结束，进入讨论' }));
     expect(api.nextAct).toHaveBeenCalledWith('r1', 'p1');

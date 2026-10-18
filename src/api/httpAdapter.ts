@@ -7,6 +7,7 @@
 
 import type { RoomContext, RoomSession } from '../types/api';
 import type {
+  AIChatReply,
   AIHint,
   RoomState,
   ScriptDetail,
@@ -81,5 +82,9 @@ export const httpAdapter: ApiAdapter = {
   },
   getAIHint(roomId, playerId) {
     return post<AIHint>('/api/ai/hint', { roomId, playerId });
+  },
+
+  askAiDm(question) {
+    return post<AIChatReply>('/api/ai/chat', { question });
   },
 };

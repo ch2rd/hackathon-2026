@@ -1,4 +1,5 @@
 import { Link, Outlet } from 'react-router-dom';
+import { AiFloatingAssistant } from '../components/game/AiFloatingAssistant';
 
 export default function GameLayout() {
   return (
@@ -13,6 +14,7 @@ export default function GameLayout() {
       <main className="mx-auto w-full max-w-7xl px-4 py-6">
         <Outlet />
       </main>
+      <AiFloatingAssistant />
     </div>
   );
 }

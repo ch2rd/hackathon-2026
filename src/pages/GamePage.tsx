@@ -8,9 +8,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { getAIHint } from '../api/ai';
 import { isDemoMode } from '../api/client';
-import { AIHintCard } from '../components/game/AIHintCard';
 import { AmbienceLayer } from '../components/game/AmbienceLayer';
 import { AudioToggle } from '../components/game/AudioToggle';
 import { CharacterIntro } from '../components/game/CharacterIntro';
@@ -32,8 +30,7 @@ import {
   voteProgress,
   voteTargets,
 } from '../game/selectors';
-import { loadIdentity, readApiError, useGameStore } from '../stores/gameStore';
-import type { AIHint } from '../types/models';
+import { loadIdentity, useGameStore } from '../stores/gameStore';
 
 export function GamePage() {
   const { roomId } = useParams<{ roomId: string }>();
@@ -45,10 +42,6 @@ export function GamePage() {
   const error = useGameStore((s) => s.error);
   const isActing = useGameStore((s) => s.isActing);
 
-  // AI 推理是「请求-展示」交互，不是游戏状态，放页面本地即可
-  const [hint, setHint] = useState<AIHint | null>(null);
-  const [isAskingAI, setIsAskingAI] = useState(false);
-  const [aiError, setAiError] = useState<string | null>(null);
   const [discoveredClueIds, setDiscoveredClueIds] = useState<Set<string>>(new Set());
   const [introDone, setIntroDone] = useState(false);
 
@@ -100,19 +93,6 @@ export function GamePage() {
     }
   }, [roomStatus, roomId, navigate]);
 
-  async function handleAskAI() {
-    if (!roomId || !roomState) return;
-    setIsAskingAI(true);
-    setAiError(null);
-    try {
-      setHint(await getAIHint(roomId, roomState.me.player.id));
-    } catch (aiFailure) {
-      setAiError(readApiError(aiFailure).message);
-    } finally {
-      setIsAskingAI(false);
-    }
-  }
-
   if (!roomState) {
     if (error?.code === 'NOT_FOUND') {
       return (
@@ -159,9 +139,11 @@ export function GamePage() {
             <span className="fx-fade ml-2 text-base font-normal text-neutral-400">{roomState.currentAct.title}</span>
           )}
         </h1>
-        <Link to={`/rooms/${roomId}/character`} className="text-sm text-neutral-400 underline">
-          我的角色档案
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link to={`/rooms/${roomId}/character`} className="text-sm text-neutral-400 underline">
+            我的角色档案
+          </Link>
+        </div>
       </header>
 
       {status === 'offline' && (
@@ -209,7 +191,10 @@ export function GamePage() {
                 <button
                   type="button"
                   disabled={isActing}
-                  onClick={() => void useGameStore.getState().setReady(true)}
+                  onClick={() => {
+                    gameAudio.sfx('click');
+                    void useGameStore.getState().setReady(true);
+                  }}
                   className="rounded-md border border-emerald-700 bg-emerald-900 px-3 py-2 text-sm font-medium disabled:opacity-50"
                 >
                   本幕讨论完成
@@ -235,13 +220,14 @@ export function GamePage() {
             clues={roomState.me.visibleClues}
             discoveredIds={discoveredClueIds}
             memory={memory}
-            onDiscover={(clue) =>
+            onDiscover={(clue) => {
+              gameAudio.sfx('pageTurn');
               setDiscoveredClueIds((current) => {
                 const next = new Set(current);
                 next.add(clue.id);
                 return next;
-              })
-            }
+              });
+            }}
           />)}
           {phase === 'search' && roomState.currentAct && (
             <article className="fx-fade rounded-md border border-neutral-800 bg-neutral-950/80 p-4">
@@ -291,14 +277,6 @@ export function GamePage() {
         <h2 className="text-sm font-medium text-neutral-300">我的线索（{discoveredClues.length}）</h2>
         <ClueList clues={discoveredClues} />
       </div>}
-
-      {(roomStatus === 'voting' || phase === 'search' || phase === 'discussion') && <AIHintCard
-        hint={hint}
-        isLoading={isAskingAI}
-        error={aiError}
-        canAsk={!isAskingAI}
-        onAsk={() => void handleAskAI()}
-      />}
 
       {showDemoAdvance && phase !== 'reading' && (
         <footer className="border-t border-neutral-800 pt-4">

@@ -12,9 +12,9 @@
 
 import type { ScriptCatalog, MockDb } from '../mocks/mockEngine';
 import {
-  confirmStoryRead,
-  sendMessage,
+  buildAIChatReply,
   buildAIHint,
+  confirmStoryRead,
   createRoom,
   emptyDb,
   finishRoom,
@@ -25,6 +25,7 @@ import {
   readRoomState,
   readScriptDetail,
   selectCharacter,
+  sendMessage,
   setReady,
   startRoom,
   submitVote,
@@ -163,5 +164,9 @@ export const mockAdapter: ApiAdapter = {
   },
   async getAIHint(roomId, playerId) {
     return buildAIHint(readDb(), await loadCatalog(), roomId, playerId);
+  },
+
+  async askAiDm(question) {
+    return buildAIChatReply(question);
   },
 };
