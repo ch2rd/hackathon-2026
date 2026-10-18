@@ -32,7 +32,7 @@ export function CharacterGrid({
   const assignmentByCharacterId = new Map(assignments.map((a) => [a.characterId, a.nickname]));
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" data-testid="character-grid">
-      {characters.map((character) => {
+      {characters.map((character, index) => {
         const takenBy = assignmentByCharacterId.get(character.id);
         const isMine = character.id === myCharacterId;
         // 别人已选走 → 永远禁用；不可选阶段（非本人角色）→ 禁用
@@ -43,8 +43,9 @@ export function CharacterGrid({
             type="button"
             disabled={isDisabled}
             onClick={() => onSelect(character.id)}
+            style={{ animationDelay: `${index * 70}ms` }}
             className={[
-              'flex flex-col items-start gap-1 rounded-md border p-4 text-left transition',
+              'fx-rise flex flex-col items-start gap-1 rounded-md border p-4 text-left transition',
               isMine
                 ? 'border-emerald-500 bg-emerald-950'
                 : takenBy

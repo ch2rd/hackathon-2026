@@ -1,5 +1,4 @@
 import type { Character } from '../../types/models';
-import { unlockAudio } from '../../game/audio';
 import { CharacterPortrait } from '../character/CharacterPortrait';
 import { SceneBackdrop } from './SceneBackdrop';
 import { resolveMemoryFilter, type SceneKey } from './visuals';
@@ -16,9 +15,10 @@ interface CharacterIntroProps {
   character: Character;
   scene: SceneKey;
   onEnter: () => void;
+  enterLabel?: string;
 }
 
-export function CharacterIntro({ character, scene, onEnter }: CharacterIntroProps) {
+export function CharacterIntro({ character, scene, onEnter, enterLabel = '进入现场' }: CharacterIntroProps) {
   const memory = resolveMemoryFilter(character.identity);
 
   return (
@@ -64,14 +64,11 @@ export function CharacterIntro({ character, scene, onEnter }: CharacterIntroProp
 
         <button
           type="button"
-          onClick={() => {
-            unlockAudio(); // 全游戏第一个用户手势：在这里解锁音频
-            onEnter();
-          }}
+          onClick={onEnter}
           className="mt-1 rounded-md border bg-black/40 px-7 py-3 font-medium transition hover:bg-black/70"
           style={{ borderColor: memory.accent, color: memory.accent }}
         >
-          进入现场
+          {enterLabel}
         </button>
       </div>
     </div>

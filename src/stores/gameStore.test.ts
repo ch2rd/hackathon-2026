@@ -31,6 +31,7 @@ function makeRoomState(overrides?: Partial<RoomState['room']>): RoomState {
       character: null,
       visibleClues: [],
     },
+    messages: [],
     votes: [],
     result: null,
   };

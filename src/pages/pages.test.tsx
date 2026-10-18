@@ -42,6 +42,7 @@ function makeRoomState(overrides?: {
       character: null,
       visibleClues: [],
     },
+    messages: [],
     votes: overrides?.votes ?? [],
     result: overrides?.result ?? null,
   };
@@ -135,22 +136,42 @@ describe('RoomPage', () => {
 });
 
 describe('GamePage', () => {
-  it('playing：显示旁白与线索区，全员确认后房主可点「下一幕」', async () => {
-    const state = makeRoomState({
-      room: { status: 'playing', currentAct: 1 },
-      currentAct: act1,
-      players: [
-        { id: 'p1', nickname: '小A', characterId: 'c_butler', characterName: '管家', isHost: true, isReady: true },
-        { id: 'p2', nickname: '小B', characterId: 'c_doctor', characterName: '医生', isHost: false, isReady: true },
-      ],
-    });
-    const api = makeApi(state);
+  it('reading：先显示个人故事，聊天、线索和推进按钮均不出现', async () => {
+    const state = makeRoomState({ room: { status: 'playing', currentAct: 1, gameplayPhase: 'reading', storyReadPlayerIds: [] }, currentAct: act1 });
+    state.me.player.characterId = 'c_butler';
+    state.me.character = { id: 'c_butler', scriptId: 's1', name: '林墨', identity: '庄园管家', age: 46, avatarUrl: '',
+      publicIntro: '庄园的日常由我负责。', backgroundStory: '你在这里度过多年，接下来请以管家的身份讲述自己的经历。', secret: '只属于我的故事。', goals: ['完成自己的任务'], sortOrder: 1 };
+    configureRoomsApi(makeApi(state));
+    renderPage('/rooms/:roomId/play', <GamePage />, '/rooms/r1/play');
+    fireEvent.click(await screen.findByRole('button', { name: '阅读我的故事' }));
+    expect(await screen.findByText('你的故事背景')).toBeInTheDocument();
+    expect(screen.getByText('只属于我的故事。')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '我已读完，准备自我介绍' })).toBeInTheDocument();
+    expect(screen.queryByRole('log', { name: '聊天记录' })).not.toBeInTheDocument();
+    expect(screen.queryByTestId('ai-hint-card')).not.toBeInTheDocument();
+    expect(screen.queryByText(/我的线索（/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /介绍结束|进入讨论|进入投票/ })).not.toBeInTheDocument();
+  });
+
+  it('playing：显示旁白与线索区，房主可点「下一幕」', async () => {
+    const api = makeApi(makeRoomState({ room: { status: 'playing', currentAct: 1 }, currentAct: act1 }));
     configureRoomsApi(api);
     renderPage('/rooms/:roomId/play', <GamePage />, '/rooms/r1/play');
     expect(await screen.findByText(/雷声过后/)).toBeInTheDocument();
-    expect(screen.getByText('本幕讨论')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: '下一幕' }));
+    expect(screen.getByText('点击房间里的物件，发现隐藏线索')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '搜证结束，进入讨论' }));
     expect(api.nextAct).toHaveBeenCalledWith('r1', 'p1');
+  });
+
+  it('discussion：保留全员讨论完成确认，未确认前不能切幕', async () => {
+    const state = makeRoomState({ room: { status: 'playing', currentAct: 1, gameplayPhase: 'discussion' }, currentAct: act1 });
+    const api = makeApi(state);
+    configureRoomsApi(api);
+    renderPage('/rooms/:roomId/play', <GamePage />, '/rooms/r1/play');
+    fireEvent.click(await screen.findByRole('button', { name: '本幕讨论完成' }));
+    expect(api.setReady).toHaveBeenCalledWith('r1', 'p1', true);
+    expect(screen.queryByRole('button', { name: '讨论结束，进入下一幕' })).not.toBeInTheDocument();
+    expect(screen.getByRole('log', { name: '聊天记录' })).toBeInTheDocument();
   });
 
   it('voting：投票面板排除自己，点击调用 submitVote', async () => {

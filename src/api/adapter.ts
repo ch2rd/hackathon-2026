@@ -17,7 +17,7 @@ import type {
   VoiceSignal,
   VoiceSignalKind,
 } from '../types/models';
-import type { RoomContext, RoomSession } from '../types/api';
+import type { RoomContext, RoomSession, SendMessageInput } from '../types/api';
 
 export interface CreateRoomInput {
   scriptId: string;
@@ -61,6 +61,9 @@ export interface ApiAdapter {
   nextAct(roomId: string, playerId: string): Promise<RoomState>;
   submitVote(roomId: string, voterPlayerId: string, targetPlayerId: string): Promise<RoomState>;
   finishRoom(roomId: string, playerId: string): Promise<RoomState>;
+
+  confirmStoryRead(roomId: string, playerId: string): Promise<RoomState>;
+  sendMessage(roomId: string, playerId: string, input: SendMessageInput): Promise<RoomState>;
 
   // ---- AI ----
   getAIHint(roomId: string, playerId: string): Promise<AIHint>;

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>四处现场 · 剧本动态封面</title>
+    <style>
+      :root { color-scheme: dark; --ink:#0b0b0f; --paper:#f5f1e8; --gold:#c8a96a; --muted:#a7a29a; }
+      * { box-sizing:border-box; }
+      body { margin:0; background:radial-gradient(ellipse at 45% 0, #26231c 0, var(--ink) 55%); color:var(--paper); font:14px/1.7 "PingFang SC","Microsoft YaHei",sans-serif; }
+      main { width:min(1160px,100%); margin:auto; padding:54px 32px 36px; }
+      a { color:var(--gold); text-decoration:none; }
+      .eyebrow { margin:0 0 12px; color:var(--gold); font-size:10px; letter-spacing:.38em; }
+      header { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:32px; }
+      h1 { margin:0; font:400 clamp(28px,4vw,46px)/1.4 "Songti SC","SimSun",serif; letter-spacing:.1em; }
+      .intro { margin:12px 0 0; color:var(--muted); font-size:13px; }
+      .controls { display:flex; flex-shrink:0; align-items:center; gap:18px; }
+      button { border:1px solid #c8a96a55; border-radius:30px; background:#c8a96a0c; color:var(--gold); padding:9px 18px; cursor:pointer; font:inherit; font-size:12px; }
+      button:hover { background:#c8a96a18; }
+      button:focus-visible,a:focus-visible { outline:2px solid var(--gold); outline-offset:5px; }
+      .gallery { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; }
+      article { min-width:0; overflow:hidden; border:1px solid #c8a96a28; border-radius:14px; background:#111116; }
+      .art { position:relative; aspect-ratio:4/3; overflow:hidden; background:var(--ink); }
+      .art img { display:block; width:100%; height:100%; object-fit:cover; }
+      .art:after { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(transparent 48%,#0b0b0fa0); }
+      .case { position:absolute; z-index:1; top:20px; left:22px; font:10px/1.4 Georgia,serif; letter-spacing:.22em; color:#f5f1e89a; }
+      .caption { padding:19px 22px 22px; }
+      .caption-top { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+      h2 { margin:0; font:400 24px/1.3 "Songti SC","SimSun",serif; letter-spacing:.12em; }
+      .genre { border-left:1px solid #c8a96a65; padding-left:12px; color:var(--gold); font-size:10px; letter-spacing:.2em; }
+      .caption p { margin:11px 0 0; color:var(--muted); font-size:12px; }
+      footer { margin-top:28px; display:flex; justify-content:space-between; gap:18px; color:var(--muted); font-size:11px; }
+      @media(max-width:650px) { main{padding:32px 18px;} header{display:block;} .controls{margin-top:22px;} .gallery{grid-template-columns:1fr;gap:20px;} footer{display:block;} }
+      @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <p class="eyebrow">真相局 / STORY COLLECTION</p>
+          <h1>四个故事，四处现场。</h1>
+          <p class="intro">让风雨、回声与灯影，先于故事抵达。</p>
+        </div>
+        <div class="controls">
+          <a href="/scripts">进入剧本库 ↗</a>
+          <button type="button" id="motion-toggle" aria-pressed="false">暂停动效</button>
+        </div>
+      </header>
+      <section class="gallery" aria-label="四个剧本的动态封面">
+        <article>
+          <div class="art"><img src="/covers/wuye-manor.svg" data-cover="wuye-manor" alt="风雨与薄雾笼罩的庄园钟楼" /><span class="case">CASE 01 / THE MANOR</span></div>
+          <div class="caption"><div class="caption-top"><h2>雾夜庄园</h2><span class="genre">推理</span></div><p>雾经过铁门，雨打向钟楼。天亮前，谁还醒着。</p></div>
+        </article>
+        <article>
+          <div class="art"><img src="/covers/huoche-last-train.svg" data-cover="huoche-last-train" alt="雨夜旧站台上的末班列车与三点十七分的挂钟" /><span class="case">CASE 02 / THE LAST TRAIN</span></div>
+          <div class="caption"><div class="caption-top"><h2>末班列车</h2><span class="genre">硬核</span></div><p>信号灯再次亮起，站台上的时间仍是三点十七分。</p></div>
+        </article>
+        <article>
+          <div class="art"><img src="/covers/shenhai-echo.svg" data-cover="shenhai-echo" alt="深蓝海水中的旧科考站、探照灯和浮游颗粒" /><span class="case">CASE 03 / THE DEEP ECHO</span></div>
+          <div class="caption"><div class="caption-top"><h2>深海回音</h2><span class="genre">情感</span></div><p>三千二百米之下，那束灯光还在等待一个回应。</p></div>
+        </article>
+        <article>
+          <div class="art"><img src="/covers/shilou-lullaby.svg" data-cover="shilou-lullaby" alt="旧石楼的潮湿长廊、录音机与昏暗灯影" /><span class="case">CASE 04 / THE LULLABY</span></div>
+          <div class="caption"><div class="caption-top"><h2>石楼童谣</h2><span class="genre">恐怖</span></div><p>天井的水一圈圈散开，录音机又转过了一遍。</p></div>
+        </article>
+      </section>
+      <footer><span>动态封面预览 · 循环播放 · 无声</span><span>已同步用于首页推荐、剧本卡片与详情封面</span></footer>
+    </main>
+    <script>
+      const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const toggle = document.getElementById('motion-toggle');
+      function setPaused(paused) {
+        document.querySelectorAll('[data-cover]').forEach((image) => {
+          image.src = `/covers/${image.dataset.cover}${paused ? '.poster' : ''}.svg`;
+        });
+        toggle.setAttribute('aria-pressed', String(paused));
+        toggle.textContent = paused ? '播放动效' : '暂停动效';
+      }
+      toggle.addEventListener('click', () => setPaused(toggle.getAttribute('aria-pressed') !== 'true'));
+      preference.addEventListener('change', (event) => setPaused(event.matches));
+      setPaused(preference.matches);
+    </script>
+  </body>
+</html>

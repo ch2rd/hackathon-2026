@@ -10,11 +10,12 @@
  * 剧本数据一律通过 `catalog` 参数注入。
  */
 
-import type { RoomContext, RoomSession } from '../types/api';
+import type { RoomContext, RoomSession, SendMessageInput } from '../types/api';
 import type {
   AIChatReply,
   Character,
   CharacterPublic,
+  ChatMessage,
   Clue,
   Player,
   PublicPlayer,
@@ -34,6 +35,7 @@ export interface MockDb {
   rooms: Room[];
   players: Player[];
   votes: Vote[];
+  messages?: ChatMessage[];
 }
 
 /** 剧本目录：scriptId → 剧本包。 */
@@ -201,6 +203,8 @@ export function buildRoomState(
         voterPlayerId: vote.voterPlayerId,
         targetPlayerId: vote.targetPlayerId,
       })),
+    messages: (db.messages ?? []).filter((message) => message.roomId === room.id &&
+      (message.channel === 'public' || message.senderPlayerId === playerId || message.receiverPlayerId === playerId)),
     result: room.status === 'ended' ? buildResult(db, room, bundle) : null,
   };
 }
@@ -213,6 +217,8 @@ function maybeEnterPlaying(db: MockDb, room: Room): void {
   if (!players.every((player) => player.characterId !== null && player.isReady)) return;
   room.status = 'playing';
   room.currentAct = 1;
+  room.gameplayPhase = 'reading';
+  room.storyReadPlayerIds = [];
   players.forEach((player) => {
     player.isReady = false;
   });
@@ -379,7 +385,7 @@ export function setReady(
   const bundle = requireBundle(catalog, room.scriptId);
   const me = requirePlayer(db, room, playerId);
 
-  if (room.status !== 'selecting' && room.status !== 'playing') {
+  if (room.status !== 'selecting' && !(room.status === 'playing' && room.gameplayPhase === 'discussion')) {
     throw new ApiError('INVALID_STATE', '当前阶段不能确认');
   }
   if (room.status === 'selecting' && isReady && me.characterId === null) {
@@ -426,12 +432,20 @@ export function nextAct(
   if (room.hostPlayerId !== me.id) throw new ApiError('FORBIDDEN', '只有房主可以推进剧情');
   if (room.status !== 'playing') throw new ApiError('INVALID_STATE', '当前不在剧情阶段');
 
-  // 专业流程：当前幕所有玩家都确认讨论完成后，房主才能推进
+  const phase = room.gameplayPhase ?? 'search';
+  if (phase === 'reading') throw new ApiError('INVALID_STATE', '请先阅读个人故事，等待全员确认后进入自我介绍');
   const players = playersOf(db, room);
+  if (phase !== 'discussion') {
+    room.gameplayPhase = phase === 'introduction' ? 'search' : 'discussion';
+    if (room.gameplayPhase === 'discussion') {
+      players.forEach((player) => { player.isReady = false; });
+    }
+    return buildRoomState(db, room, playerId, bundle);
+  }
   if (!players.every((player) => player.isReady)) {
     throw new ApiError('INVALID_STATE', '还有玩家未确认本幕讨论完成');
   }
-
+  room.gameplayPhase = 'search';
   // 最后几幕由数据决定，不写死幕数
   const lastAct = bundle.acts.reduce((max, act) => Math.max(max, act.actNumber), 0);
   if (room.currentAct >= lastAct) {
@@ -502,6 +516,7 @@ export function finishRoom(
     throw new ApiError('INVALID_STATE', '演示推进不能跳过选角阶段');
   }
 
+  if (room.gameplayPhase === 'reading') throw new ApiError('INVALID_STATE', '请先完成个人故事阅读');
   room.status = 'ended';
   return buildRoomState(db, room, playerId, bundle);
 }
@@ -546,6 +561,50 @@ export function buildAIHint(db: MockDb, catalog: ScriptCatalog, roomId: string, 
     disclaimer: 'AI 仅根据你已获得的线索推测，不代表真相。',
     source: 'mock' as const,
   };
+}
+
+/** 两种模式共用校验与私聊过滤，客户端不能伪造线索内容。 */
+export function sendMessage(db: MockDb, catalog: ScriptCatalog, roomId: string, playerId: string, input: SendMessageInput): RoomState {
+  const room = findRoom(db, roomId);
+  const me = requirePlayer(db, room, playerId);
+  const bundle = requireBundle(catalog, room.scriptId);
+  if (room.status !== 'playing') throw new ApiError('INVALID_STATE', '当前环节不能发言');
+  const phase = room.gameplayPhase ?? 'search';
+  if (phase === 'reading') throw new ApiError('INVALID_STATE', '请先阅读个人故事，等待全员确认后进入自我介绍');
+  if (phase === 'search') throw new ApiError('INVALID_STATE', '请先搜证，进入讨论后再发言');
+  if (input.channel !== 'public' && input.channel !== 'direct') throw new ApiError('VALIDATION_ERROR', '聊天频道无效');
+  if (input.channel === 'direct') {
+    if (phase === 'introduction') throw new ApiError('INVALID_STATE', '出场环节请先在公聊中认识彼此');
+    if (!input.receiverPlayerId || input.receiverPlayerId === playerId) throw new ApiError('VALIDATION_ERROR', '请选择其他玩家私聊');
+    requirePlayer(db, room, input.receiverPlayerId);
+  } else if (input.receiverPlayerId) throw new ApiError('VALIDATION_ERROR', '公聊不能指定私聊对象');
+  let content = input.content?.trim();
+  let title: string | null = null;
+  if (input.clueId) {
+    const clue = visibleCluesFor(bundle, me, room.currentAct).find((item) => item.id === input.clueId);
+    if (!clue) throw new ApiError('FORBIDDEN', '只能分享自己已获得的线索');
+    content = clue.content;
+    title = clue.title;
+  } else if (!content || content.length > 1000) throw new ApiError('VALIDATION_ERROR', '发言请输入 1～1000 字');
+  const messages = db.messages ?? (db.messages = []);
+  messages.push({ id: newId('message'), roomId, channel: input.channel, senderPlayerId: playerId,
+    receiverPlayerId: input.channel === 'direct' ? input.receiverPlayerId! : null,
+    senderName: me.nickname, kind: input.clueId ? 'clue' : 'chat', title, content, createdAt: new Date().toISOString() });
+  return buildRoomState(db, room, playerId, bundle);
+}
+
+/** 每个玩家只能确认自己的阅读进度，全员确认后一起进入公聊。 */
+export function confirmStoryRead(db: MockDb, catalog: ScriptCatalog, roomId: string, playerId: string): RoomState {
+  const room = findRoom(db, roomId);
+  requirePlayer(db, room, playerId);
+  const bundle = requireBundle(catalog, room.scriptId);
+  if (room.status === 'playing' && room.storyReadPlayerIds?.includes(playerId)) return buildRoomState(db, room, playerId, bundle);
+  if (room.status !== 'playing' || room.gameplayPhase !== 'reading') throw new ApiError('INVALID_STATE', '当前不在个人故事阅读环节');
+  const readers = new Set(room.storyReadPlayerIds ?? []);
+  readers.add(playerId);
+  room.storyReadPlayerIds = [...readers];
+  if (playersOf(db, room).every((player) => readers.has(player.id))) room.gameplayPhase = 'introduction';
+  return buildRoomState(db, room, playerId, bundle);
 }
 
 /** 首页 AI DM 的确定性兜底回答（无 Key / 超时 / 失败时使用）。 */

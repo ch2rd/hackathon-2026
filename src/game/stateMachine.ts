@@ -58,6 +58,7 @@ export type GameEvent =
   | { type: 'start'; actorPlayerId: string }
   | { type: 'selectCharacter'; playerId: string; characterId: string }
   | { type: 'setReady'; playerId: string; isReady: boolean }
+  | { type: 'confirmStoryRead'; playerId: string }
   | { type: 'nextAct'; actorPlayerId: string }
   | { type: 'submitVote'; voterPlayerId: string; targetPlayerId: string }
   /** 演示兜底：房主强制推进（只在 VITE_DEMO_MODE=true 时由 UI 暴露） */
@@ -139,7 +140,7 @@ function maybeEnterPlaying(state: RoomState, ctx: GameContext): RoomState {
   const firstAct = ctx.acts[0] ?? null;
   return {
     ...state,
-    room: { ...state.room, status: 'playing', currentAct: firstAct?.actNumber ?? 1 },
+    room: { ...state.room, status: 'playing', currentAct: firstAct?.actNumber ?? 1, gameplayPhase: 'reading', storyReadPlayerIds: [] },
     players,
     currentAct: firstAct,
     me: {
@@ -200,20 +201,20 @@ export function selectCharacter(
     me: {
       ...state.me,
       player: isMe ? { ...state.me.player, characterId } : state.me.player,
-      character: isMe ? (state.me.character ?? resolveMyCharacter(ctx, characterId)) : state.me.character,
+      character: isMe ? resolveMyCharacter(ctx, characterId) : state.me.character,
     },
   };
   return { ok: true, state: maybeEnterPlaying(next, ctx) };
 }
 
-/** selecting 阶段准备/取消准备；全员选角且准备后自动进入 playing。 */
+/** 选角准备，或讨论完成确认；个人故事通过独立的阅读确认推进。 */
 export function setReady(
   state: RoomState,
   ctx: GameContext,
   playerId: string,
   isReady: boolean
 ): TransitionResult {
-  if (state.room.status !== 'selecting' && state.room.status !== 'playing') {
+  if (state.room.status !== 'selecting' && !(state.room.status === 'playing' && state.room.gameplayPhase === 'discussion')) {
     return fail('INVALID_STATE', '当前阶段不能确认');
   }
   const player = findPlayer(state, playerId);
@@ -255,10 +256,23 @@ export function nextAct(state: RoomState, ctx: GameContext, actorPlayerId: strin
   if (!actor) return fail('NOT_FOUND', '玩家不存在');
   if (state.room.status !== 'playing') return fail('INVALID_STATE', '当前状态不能推进剧情');
   if (!actor.isHost) return fail('FORBIDDEN', '只有房主可以推进剧情');
+  const phase = state.room.gameplayPhase ?? 'search';
+  if (phase === 'reading') return fail('INVALID_STATE', '请等待全员读完个人故事');
+  if (phase !== 'discussion') {
+    const enteringDiscussion = phase === 'search';
+    return {
+      ok: true,
+      state: {
+        ...state,
+        room: { ...state.room, gameplayPhase: enteringDiscussion ? 'discussion' : 'search' },
+        players: enteringDiscussion ? state.players.map((player) => ({ ...player, isReady: false })) : state.players,
+        me: enteringDiscussion ? { ...state.me, player: { ...state.me.player, isReady: false } } : state.me,
+      },
+    };
+  }
   if (!state.players.every((player) => player.isReady)) {
     return fail('INVALID_STATE', '还有玩家未确认本幕讨论完成');
   }
-
   const current = state.room.currentAct;
   if (current >= lastActNumber(ctx)) {
     return { ok: true, state: enterVoting(state) };
@@ -268,7 +282,7 @@ export function nextAct(state: RoomState, ctx: GameContext, actorPlayerId: strin
     ok: true,
     state: {
       ...state,
-      room: { ...state.room, currentAct: actNumber },
+      room: { ...state.room, currentAct: actNumber, gameplayPhase: 'search' },
       currentAct: actByNumber(ctx, actNumber),
       players: state.players.map((player) => ({ ...player, isReady: false })),
       me: {
@@ -380,6 +394,8 @@ export function applyEvent(state: RoomState, ctx: GameContext, event: GameEvent)
       return selectCharacter(state, ctx, event.playerId, event.characterId);
     case 'setReady':
       return setReady(state, ctx, event.playerId, event.isReady);
+    case 'confirmStoryRead':
+      return confirmStoryRead(state, ctx, event.playerId);
     case 'nextAct':
       return nextAct(state, ctx, event.actorPlayerId);
     case 'submitVote':
@@ -387,4 +403,14 @@ export function applyEvent(state: RoomState, ctx: GameContext, event: GameEvent)
     case 'demoAdvance':
       return demoAdvance(state, ctx, event.actorPlayerId);
   }
+}
+
+export function confirmStoryRead(state: RoomState, _ctx: GameContext, playerId: string): TransitionResult {
+  if (!findPlayer(state, playerId)) return fail('NOT_FOUND', '玩家不存在');
+  if (state.room.status === 'playing' && state.room.storyReadPlayerIds?.includes(playerId)) return { ok: true, state };
+  if (state.room.status !== 'playing' || state.room.gameplayPhase !== 'reading') return fail('INVALID_STATE', '当前不在个人故事阅读环节');
+  const readers = new Set(state.room.storyReadPlayerIds ?? []);
+  readers.add(playerId);
+  return { ok: true, state: { ...state, room: { ...state.room, storyReadPlayerIds: [...readers],
+    gameplayPhase: state.players.every((player) => readers.has(player.id)) ? 'introduction' : 'reading' } } };
 }

@@ -20,8 +20,8 @@ export function ClueList({ clues }: ClueListProps) {
   }
   return (
     <ul className="flex flex-col gap-2" data-testid="clue-list">
-      {clues.map((clue) => (
-        <li key={clue.id} className="rounded-md border border-neutral-700 bg-neutral-900 p-3">
+      {clues.map((clue, index) => (
+        <li key={clue.id} className="fx-rise rounded-md border border-neutral-700 bg-neutral-900/80 p-3" style={{ animationDelay: `${index * 90}ms` }}>
           <div className="flex items-center justify-between">
             <span className="font-medium">{clue.title}</span>
             <span

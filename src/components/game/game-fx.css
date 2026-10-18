@@ -1,0 +1,171 @@
+/* 游戏氛围效果（B 的 game 组件私有样式；正式设计 token 归 A 的 styles/）。
+   只用中性色与动画，不引入新字体。 */
+
+.fx-ambience {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* 雨丝：两层斜向渐变滚动，速度不同产生景深 */
+.fx-rain,
+.fx-rain-far {
+  position: absolute;
+  inset: -60% -10%;
+  background-image: repeating-linear-gradient(
+    115deg,
+    rgba(180, 200, 230, 0.14) 0px,
+    rgba(180, 200, 230, 0.14) 1px,
+    transparent 1px,
+    transparent 7px
+  );
+  animation: fx-rain-fall 0.7s linear infinite;
+}
+.fx-rain-far {
+  background-image: repeating-linear-gradient(
+    112deg,
+    rgba(160, 180, 210, 0.07) 0px,
+    rgba(160, 180, 210, 0.07) 1px,
+    transparent 1px,
+    transparent 11px
+  );
+  animation-duration: 1.15s;
+}
+
+@keyframes fx-rain-fall {
+  from { transform: translateY(-25%) translateX(8%); }
+  to { transform: translateY(25%) translateX(-8%); }
+}
+
+/* 雾：两片巨型径向渐变缓慢横移 */
+.fx-fog {
+  position: absolute;
+  top: 30%;
+  left: -30%;
+  width: 160%;
+  height: 55%;
+  background: radial-gradient(ellipse 45% 38% at 30% 55%, rgba(148, 163, 184, 0.11), transparent 70%),
+    radial-gradient(ellipse 40% 30% at 70% 45%, rgba(148, 163, 184, 0.09), transparent 70%);
+  filter: blur(2px);
+  animation: fx-fog-drift 26s ease-in-out infinite alternate;
+}
+
+@keyframes fx-fog-drift {
+  from { transform: translateX(-4%); opacity: 0.75; }
+  to { transform: translateX(6%); opacity: 1; }
+}
+
+/* 暗角 */
+.fx-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 90% 80% at 50% 42%, transparent 55%, rgba(2, 6, 12, 0.72));
+}
+
+/* 投票阶段：暗角泛出压迫感的深红脉动 */
+.fx-ambience[data-stage='voting'] .fx-vignette {
+  background: radial-gradient(ellipse 90% 80% at 50% 42%, transparent 48%, rgba(69, 10, 10, 0.55));
+  animation: fx-pulse 2.2s ease-in-out infinite;
+}
+
+/* 结局：泛金（对）/ 泛红（错）由 data-mood 控制 */
+.fx-ambience[data-mood='good'] .fx-vignette {
+  background: radial-gradient(ellipse 90% 80% at 50% 42%, transparent 45%, rgba(87, 66, 8, 0.5));
+}
+.fx-ambience[data-mood='bad'] .fx-vignette {
+  background: radial-gradient(ellipse 90% 80% at 50% 42%, transparent 45%, rgba(69, 10, 10, 0.6));
+}
+
+@keyframes fx-pulse {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
+}
+
+/* 闪电：超长周期里两次瞬间亮白覆盖层 */
+.fx-lightning {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(226, 232, 240, 0.5), transparent 60%);
+  opacity: 0;
+  animation: fx-flash 17s linear infinite;
+}
+
+@keyframes fx-flash {
+  0%, 91.6% { opacity: 0; }
+  91.8% { opacity: 0.85; }
+  92.1% { opacity: 0.05; }
+  92.4% { opacity: 0.6; }
+  92.9% { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+/* 幕布：换幕时整屏黑幕快速落下再隐去（key 到 act id 触发重放） */
+.fx-curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: #000;
+  pointer-events: none;
+  animation: fx-curtain-sweep 1.15s ease-out forwards;
+}
+
+@keyframes fx-curtain-sweep {
+  0% { opacity: 1; transform: scaleY(0.02); transform-origin: top; }
+  35% { opacity: 1; transform: scaleY(1); }
+  100% { opacity: 0; transform: scaleY(1); }
+}
+
+/* 入场：上浮淡入（角色卡/线索卡/投票卡错峰用 animation-delay） */
+.fx-rise {
+  animation: fx-rise-in 0.55s ease-out both;
+}
+
+@keyframes fx-rise-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 文本淡入（旁白容器） */
+.fx-fade {
+  animation: fx-fade-in 0.8s ease-out both;
+}
+
+@keyframes fx-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* 打字机光标 */
+.fx-caret::after {
+  content: '▌';
+  margin-left: 2px;
+  animation: fx-blink 0.9s steps(1) infinite;
+  color: rgb(148, 163, 184);
+}
+
+@keyframes fx-blink {
+  50% { opacity: 0; }
+}
+
+/* 房间号呼吸微光 */
+.fx-glow {
+  text-shadow: 0 0 14px rgba(252, 211, 77, 0.55);
+  animation: fx-glow-breathe 3s ease-in-out infinite;
+}
+
+@keyframes fx-glow-breathe {
+  0%, 100% { text-shadow: 0 0 8px rgba(252, 211, 77, 0.35); }
+  50% { text-shadow: 0 0 22px rgba(252, 211, 77, 0.75); }
+}
+
+/* 结局印章感标题 */
+.fx-stamp {
+  animation: fx-stamp-in 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+@keyframes fx-stamp-in {
+  from { opacity: 0; transform: scale(1.6); }
+  to { opacity: 1; transform: scale(1); }
+}

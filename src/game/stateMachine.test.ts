@@ -84,6 +84,7 @@ function makeState(overrides?: Partial<RoomState>): RoomState {
       character: null,
       visibleClues: [],
     },
+    messages: [],
     votes: [],
     result: null,
     ...overrides,
@@ -91,7 +92,7 @@ function makeState(overrides?: Partial<RoomState>): RoomState {
 }
 
 /** 推到指定状态的辅助：waiting → selecting → playing（第 3 人准备后自动流转）。 */
-function advanceToPlaying(): RoomState {
+function advanceToPlaying(readStory = true): RoomState {
   let state = makeState();
   const started = applyEvent(state, ctx, { type: 'start', actorPlayerId: 'p1' });
   expect(started.ok).toBe(true);
@@ -113,6 +114,22 @@ function advanceToPlaying(): RoomState {
   }
   // 全员选角并准备后应已自动进入 playing
   expect(state.room.status).toBe('playing');
+  expect(state.room.gameplayPhase).toBe('reading');
+  expect(state.players.every((player) => !player.isReady)).toBe(true);
+  expect(state.me.player.isReady).toBe(false);
+  if (!readStory) return state;
+  for (const player of state.players) {
+    const result = applyEvent(state, ctx, { type: 'confirmStoryRead', playerId: player.id });
+    if (!result.ok) throw new Error('story confirmation failed');
+    state = result.state;
+  }
+  expect(state.room.gameplayPhase).toBe('introduction');
+  for (const phase of ['search', 'discussion']) {
+    const result = applyEvent(state, ctx, { type: 'nextAct', actorPlayerId: 'p1' });
+    if (!result.ok) throw new Error('phase transition failed');
+    state = result.state;
+    expect(state.room.gameplayPhase).toBe(phase);
+  }
   return state;
 }
 
@@ -133,7 +150,10 @@ function advanceToVoting(): RoomState {
   const act2 = applyEvent(state, ctx, { type: 'nextAct', actorPlayerId: 'p1' });
   expect(act2.ok).toBe(true);
   if (!act2.ok) throw new Error('unreachable');
-  state = confirmAll(act2.state);
+  state = act2.state;
+  const discussion = applyEvent(state, ctx, { type: 'nextAct', actorPlayerId: 'p1' });
+  if (!discussion.ok) throw new Error('phase transition failed');
+  state = confirmAll(discussion.state);
   const toVoting = applyEvent(state, ctx, { type: 'nextAct', actorPlayerId: 'p1' });
   expect(toVoting.ok).toBe(true);
   if (!toVoting.ok) throw new Error('unreachable');
@@ -177,6 +197,54 @@ describe('正常全流程推进', () => {
     const voting = advanceToVoting();
     expect(voting.room.status).toBe('voting');
     expect(voting.result).toBeNull();
+    expect(voting.players.every((player) => !player.isReady)).toBe(true);
+    expect(voting.me.player.isReady).toBe(false);
+  });
+
+  it('个人故事必须各自确认，不能用准备或房主推进跳过', () => {
+    let state = advanceToPlaying(false);
+    expect(canNextAct(state, 'p1')).toBe(false);
+    expect(applyEvent(state, ctx, { type: 'nextAct', actorPlayerId: 'p1' })).toMatchObject({ ok: false, error: { code: 'INVALID_STATE' } });
+    expect(applyEvent(state, ctx, { type: 'setReady', playerId: 'p1', isReady: true })).toMatchObject({ ok: false, error: { code: 'INVALID_STATE' } });
+    for (const playerId of ['p1', 'p1', 'p2', 'p3']) {
+      const confirmed = applyEvent(state, ctx, { type: 'confirmStoryRead', playerId });
+      if (!confirmed.ok) throw new Error('story confirmation failed');
+      state = confirmed.state;
+      expect(state.room.gameplayPhase).toBe(playerId === 'p3' ? 'introduction' : 'reading');
+    }
+    expect(state.room.storyReadPlayerIds).toEqual(['p1', 'p2', 'p3']);
+    expect(canNextAct(state, 'p1')).toBe(true);
+    expect(canNextAct(state, 'p2')).toBe(false);
+    const search = applyEvent(state, ctx, { type: 'nextAct', actorPlayerId: 'p1' });
+    if (!search.ok) throw new Error('search transition failed');
+    expect(search.state.room.gameplayPhase).toBe('search');
+    expect(canNextAct(search.state, 'p1')).toBe(true);
+    const staleReady = confirmAll(advanceToPlaying());
+    staleReady.room = { ...staleReady.room, gameplayPhase: 'search' };
+    const discussion = applyEvent(staleReady, ctx, { type: 'nextAct', actorPlayerId: 'p1' });
+    if (!discussion.ok) throw new Error('discussion transition failed');
+    expect(discussion.state.room.gameplayPhase).toBe('discussion');
+    expect(discussion.state.players.every((player) => !player.isReady)).toBe(true);
+    expect(discussion.state.me.player.isReady).toBe(false);
+  });
+
+  it('讨论全员确认后才能切幕，切幕后不能沿用前一幕确认', () => {
+    const discussion = advanceToPlaying();
+    expect(applyEvent(discussion, ctx, { type: 'nextAct', actorPlayerId: 'p1' })).toMatchObject({ ok: false, error: { code: 'INVALID_STATE' } });
+    const partial = applyEvent(discussion, ctx, { type: 'setReady', playerId: 'p1', isReady: true });
+    if (!partial.ok) throw new Error('discussion confirmation failed');
+    expect(partial.state.me.player.isReady).toBe(true);
+    expect(canNextAct(partial.state, 'p1')).toBe(false);
+    expect(applyEvent(partial.state, ctx, { type: 'nextAct', actorPlayerId: 'p1' }).ok).toBe(false);
+    const next = applyEvent(confirmAll(partial.state), ctx, { type: 'nextAct', actorPlayerId: 'p1' });
+    if (!next.ok) throw new Error('next act failed');
+    expect(next.state.room.gameplayPhase).toBe('search');
+    expect(next.state.room.currentAct).toBe(2);
+    expect(next.state.players.every((player) => !player.isReady)).toBe(true);
+    expect(next.state.me.player.isReady).toBe(false);
+    const finalDiscussion = applyEvent(next.state, ctx, { type: 'nextAct', actorPlayerId: 'p1' });
+    if (!finalDiscussion.ok) throw new Error('final discussion failed');
+    expect(applyEvent(finalDiscussion.state, ctx, { type: 'nextAct', actorPlayerId: 'p1' }).ok).toBe(false);
   });
 
   it('全员投票后自动 ended，凶手被投出则 isCorrect', () => {

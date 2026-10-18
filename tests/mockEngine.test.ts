@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import type { ScriptBundle } from '../src/types/models';
 import { validateScriptBundle } from '../src/utils/scriptSchema';
 import {
+  confirmStoryRead,
   buildAIHint,
   createRoom,
   emptyDb,
@@ -216,20 +217,41 @@ describe.each([
     expect(playing.room.status).toBe('playing');
     expect(playing.room.currentAct).toBe(1);
 
+    expect(playing.room.gameplayPhase).toBe('reading');
+    expect(playing.players.every((player) => !player.isReady)).toBe(true);
+    expect(playing.me.player.isReady).toBe(false);
+    expectApiError(() => setReady(db, catalog, host.room.id, host.player.id, true), 'INVALID_STATE');
+    expectApiError(() => nextAct(db, catalog, host.room.id, host.player.id), 'INVALID_STATE');
+    for (const session of [host, p2, p3]) confirmStoryRead(db, catalog, host.room.id, session.player.id);
+    expect(playing.room.gameplayPhase).toBe('introduction');
+    nextAct(db, catalog, host.room.id, host.player.id);
+    expect(host.room.gameplayPhase).toBe('search');
+    nextAct(db, catalog, host.room.id, host.player.id);
+    expect(host.room.gameplayPhase).toBe('discussion');
     // 幕数由数据决定，不写死；每幕都要全员确认后才能推进
     const lastAct = bundle.acts.reduce((max, act) => Math.max(max, act.actNumber), 0);
     const playerIds = [host.player.id, p2.player.id, p3.player.id];
     for (let act = 1; act < lastAct; act += 1) {
+      expectApiError(() => nextAct(db, catalog, host.room.id, host.player.id), 'INVALID_STATE');
       for (const playerId of playerIds) {
         setReady(db, catalog, host.room.id, playerId, true);
       }
+      const next = nextAct(db, catalog, host.room.id, host.player.id);
+      expect(next.players.every((player) => !player.isReady)).toBe(true);
+      expect(next.me.player.isReady).toBe(false);
+      expect(host.room.gameplayPhase).toBe('search');
       nextAct(db, catalog, host.room.id, host.player.id);
+      expect(host.room.gameplayPhase).toBe('discussion');
     }
     expectApiError(() => nextAct(db, catalog, host.room.id, p2.player.id), 'FORBIDDEN');
+    expectApiError(() => nextAct(db, catalog, host.room.id, host.player.id), 'INVALID_STATE');
     for (const playerId of playerIds) {
       setReady(db, catalog, host.room.id, playerId, true);
     }
-    expect(nextAct(db, catalog, host.room.id, host.player.id).room.status).toBe('voting');
+    const voting = nextAct(db, catalog, host.room.id, host.player.id);
+    expect(voting.room.status).toBe('voting');
+    expect(voting.players.every((player) => !player.isReady)).toBe(true);
+    expect(voting.me.player.isReady).toBe(false);
 
     // 揭晓前不泄露凶手
     expect(JSON.stringify(readRoomState(db, catalog, host.room.id, p2.player.id))).not.toContain(

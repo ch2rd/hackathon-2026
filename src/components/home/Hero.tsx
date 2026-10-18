@@ -50,6 +50,8 @@ export function Hero({ featuredScript }: HeroProps) {
             <ScriptCover
               title={featuredScript.title}
               genre={featuredScript.genre}
+              coverUrl={featuredScript.coverUrl}
+              priority
               className="aspect-[4/3]"
             />
             <div className="mt-4 flex items-center justify-between">
