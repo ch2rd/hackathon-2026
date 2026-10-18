@@ -30,5 +30,5 @@
 - 引入 MIT 开源协议与第三方资源声明文件。
 - 建立仓库自检脚本 `scripts/check-repo.sh` 与提交信息校验 `scripts/check-commit-msg.sh`。
 
-[Unreleased]: https://github.com/ch2nd/hackathon-2026/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/ch2nd/hackathon-2026/releases/tag/v0.1.0
+[Unreleased]: https://github.com/ch2rd/hackathon-2026/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/ch2rd/hackathon-2026/releases/tag/v0.1.0

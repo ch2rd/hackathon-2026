@@ -2,7 +2,7 @@
 
 > 一句话说清这个项目解决谁的什么问题。
 
-[![CI](https://github.com/ch2nd/hackathon-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/ch2nd/hackathon-2026/actions/workflows/ci.yml)
+[![CI](https://github.com/ch2rd/hackathon-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/ch2rd/hackathon-2026/actions/workflows/ci.yml)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 - **参赛赛道**：待填写
@@ -30,7 +30,7 @@
 
 ```bash
 # 1. 克隆
-git clone https://github.com/ch2nd/hackathon-2026.git
+git clone https://github.com/ch2rd/hackathon-2026.git
 cd hackathon-2026
 
 # 2. 配置环境变量（复制后填入自己的值，切勿提交 .env）
