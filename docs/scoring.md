@@ -11,7 +11,7 @@
 | 评分维度 | 分值 | 我们的做法 | 证据位置（文件 / 行 / 演示时间点） | 状态 |
 | --- | --- | --- | --- | --- |
 | 创新性 | — | 剧本**零代码热插拔**：丢一个 JSON 就上线一本，后端对剧本零假设；Mock 与真实后端**同一份状态机**，不会演示一套、上线一套；AI 可降级不阻塞 | `docs/script-format.md`、`src/mocks/mockEngine.ts`、`src/server/services/*` | 已完成 |
-| 技术完成度 | — | §5 的 P0 端点全部实装；状态机覆盖边界（抢角、重复投票、投自己、平票、非房主越权）；三份 tsconfig 类型检查 + 16 个回归用例 + 真实后端端到端冒烟 | `src/server/`、`tests/mockEngine.test.ts`、`scripts/smoke-api.ts` | 后端已完成；前端待补 |
+| 技术完成度 | — | §5 的 P0 端点全部实装；状态机覆盖边界（抢角、重复投票、投自己、平票、非房主越权）；三份 tsconfig 类型检查全绿；10 个测试文件、100+ 条用例，其中剧本回归 16 / 客户端状态机 26 / 聊天与环节 6 共 48 条已实际跑通；真实后端端到端冒烟 `smoke:api` 全绿 | `src/server/`、`tests/`、`scripts/smoke-api.ts` | 后端已完成；前端 7 页已建，待真实模式联调 |
 | 实用价值 | — | 3 个人开一个标签页就能开一局；房间凑不齐时房主可用「演示推进」兜底；不需要数据库、不需要 AI Key 就能完整跑 | `src/mocks/mockEngine.ts`（`finishRoom`）、`.env.example` | 已完成 |
 | 演示效果 | — | 5 分钟脚本已写好（首页 → 剧本库 → 建房加入 → 选角 → 两幕剧情 → AI 推理 → 投票结局）；断网可用 `VITE_USE_MOCK=true` 全程离线演示 | `docs/demo-script.md`、`README.md` 3.1 | 进行中（等页面） |
 | 工程规范 | — | AGENTS.md 为唯一事实源；commit 信息校验钩子；仓库自检脚本；第三方资源逐条登记；secret 不入库 | `AGENTS.md`、`scripts/check-commit-msg.sh`、`scripts/check-repo.sh`、`ATTRIBUTIONS.md` | 已完成 |
@@ -42,8 +42,9 @@
 
 | 风险项 | 当前状态 | 消除动作 | 负责人 | 截止时间 |
 | --- | --- | --- | --- | --- |
-| 剧本封面与角色头像缺失：`data/scripts/*.json` 引用了 4 个封面 + 22 个头像路径，仓库内无任何图片文件 | **有风险** | 补齐素材；若用外部素材必须回 [ATTRIBUTIONS.md](../ATTRIBUTIONS.md) 第三节登记来源与协议 | A | 建剧本库页面前 |
-| 7 个前端页面尚未创建（`src/` 仅有 `App.tsx` / `main.tsx`） | **有风险** | 按 AGENTS §10.1 补齐首页、剧本库、详情、房间、角色、游戏、结局 | A / B | 联调前 |
+| 剧本封面与角色头像：封面已补齐（四套动态 SVG + 静态回退），**角色头像仍是代码绘制**，`data/scripts` 引用的 `/avatars/*.svg` 未提供 | 部分消除（仅剩头像） | 补齐头像素材；若用外部素材必须回 [ATTRIBUTIONS.md](../ATTRIBUTIONS.md) 第三节登记来源与协议 | A | 提交前 |
+| 7 个前端页面尚未创建（`src/` 仅有 `App.tsx` / `main.tsx`） | **已消除** | 7 页均已建：首页 / 剧本库 / 详情 / 房间 / 角色 / 游戏 / 结局；剩余工作是 `VITE_USE_MOCK=false` 下的真实模式端到端联调 | A / B | 联调前 |
+| **两份状态机实现**：权威规则在 `src/mocks/mockEngine.ts`（Mock 与真实后端共用），客户端另有一份 `src/game/stateMachine.ts`（`src/game/selectors.ts` 与测试在用） | 有风险 | 逐字比对过 `tallyVotes` / `computeVisibleClues` / 平票处理，**当前行为一致**；但改一处忘另一处会出现「UI 判平票、服务器判命中」这类可见错误。动作：把这两条纯函数提成共享模块，或让 `stateMachine.ts` 直接复用权威实现 | B / C | 提交前 |
 | `playerId` 由客户端传入，无鉴权，知道他人 id 即可冒充 | 已知短板 | 演示环境可接受；正式版需服务端会话或 token，已列入一周计划第 2 项 | C | 迭代期 |
 | 演示视频 / PPT / 在线 Demo 链接未提供 | 未开始 | 按 [submission-checklist.md](submission-checklist.md) 逐项补齐 | 全员 | 提交前 |
 | 工作区存在另一会话并发提交与推送 | 有风险 | 确认归属，合并到 `main` 前对齐，避免互相覆盖 | 全员 | 合并前 |

@@ -36,7 +36,8 @@
 - 剧本内容改为静态文件，不入库：`npm run db:push` / `db:seed` 不再是必需步骤。
 - 房间等运行时状态先落 `.data/rooms.json`（零依赖实现）；`prisma/schema.prisma` 已按 §4 建好作为迁移目标。
 - `ApiError` 下沉到 `src/utils/apiError.ts`，供后端复用而不依赖浏览器环境。
-- 状态机规则统一在 `src/mocks/mockEngine.ts`，Mock 与真实后端同源，不存在两套实现。
+- 状态机规则以 `src/mocks/mockEngine.ts` 为权威来源，Mock 与真实后端同源；`src/game/stateMachine.ts` 是客户端演示用的第二份实现（`src/game/selectors.ts` 及测试在用），`tallyVotes` / `computeVisibleClues` 目前与权威实现行为一致，属于待合并的技术债（见 `docs/scoring.md` 风险清单）。
+- 游戏音频改为**只播放一段文件音乐**（`public/audio/universfield-suspenseful-dark-background.mp3`，循环）；程序化合成的 BGM 与全部音效按需求移除，`AudioToggle` 的行为不变。
 - 后端目录由根目录 `server/` 迁入 `src/server/`（对齐 AGENTS.md 与 PR #2 的定稿位置）；`dev:api`、`tsconfig.server.json`、文档与注释引用同步更新。
 - `src/server/index.ts` 拆出 `createApp()` / `startServer()`：被 import 时不再监听端口，供测试复用；直接执行时行为不变。
 - CI 的 `project-checks` 增加 `actions/setup-node@v4`（Node 22）：`check:scripts` 与 `smoke:api` 依赖 `node --experimental-strip-types`（需 ≥ 22.6），runner 自带的是 20.x。
