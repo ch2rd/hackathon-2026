@@ -13,6 +13,7 @@ import { isDemoMode } from '../api/client';
 import { AIHintCard } from '../components/game/AIHintCard';
 import { ClueList } from '../components/game/ClueList';
 import { DemoAdvanceButton } from '../components/game/DemoAdvanceButton';
+import { SceneExplorer } from '../components/game/SceneExplorer';
 import { VotePanel } from '../components/game/VotePanel';
 import {
   canDemoAdvance,
@@ -40,6 +41,7 @@ export function GamePage() {
   const [hint, setHint] = useState<AIHint | null>(null);
   const [isAskingAI, setIsAskingAI] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [discoveredClueIds, setDiscoveredClueIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!roomId) return;
@@ -102,6 +104,7 @@ export function GamePage() {
   const ready = readyProgress(roomState);
   const meReady = roomState.me.player.isReady;
   const finalAct = context ? isFinalAct(roomState, context) : false;
+  const discoveredClues = roomState?.me.visibleClues.filter((clue) => discoveredClueIds.has(clue.id)) ?? [];
 
   return (
     <section className="mx-auto flex max-w-3xl flex-col gap-5 p-6">
@@ -169,6 +172,18 @@ export function GamePage() {
             </ul>
           </div>
 
+          <SceneExplorer
+            clues={roomState.me.visibleClues}
+            discoveredIds={discoveredClueIds}
+            onDiscover={(clue) =>
+              setDiscoveredClueIds((current) => {
+                const next = new Set(current);
+                next.add(clue.id);
+                return next;
+              })
+            }
+          />
+
           {roomState.currentAct && (
             <article className="rounded-md border border-neutral-800 bg-neutral-950 p-4">
               <p className="whitespace-pre-line text-sm leading-6 text-neutral-200">{roomState.currentAct.narration}</p>
@@ -217,8 +232,8 @@ export function GamePage() {
       )}
 
       <div className="flex flex-col gap-2">
-        <h2 className="text-sm font-medium text-neutral-300">我的线索（{roomState.me.visibleClues.length}）</h2>
-        <ClueList clues={roomState.me.visibleClues} />
+        <h2 className="text-sm font-medium text-neutral-300">我的线索（{discoveredClues.length}）</h2>
+        <ClueList clues={discoveredClues} />
       </div>
 
       <AIHintCard
