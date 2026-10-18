@@ -5,6 +5,10 @@ import CharacterPage from './pages/CharacterPage';
 import HomePage from './pages/HomePage';
 import ScriptDetailPage from './pages/ScriptDetailPage';
 import ScriptLibraryPage from './pages/ScriptLibraryPage';
+// 注意：A 的页面用默认导出，B 的三个页面用命名导出，这里按各自风格引入。
+import { EndingPage } from './pages/EndingPage';
+import { GamePage } from './pages/GamePage';
+import { RoomPage } from './pages/RoomPage';
 import { PagePlaceholder } from './components/ui/PagePlaceholder';
 
 export const router = createBrowserRouter([
@@ -21,30 +25,32 @@ export const router = createBrowserRouter([
   {
     element: <GameLayout />,
     children: [
+      // B 的三个页面（契约见 src/pages/pages.test.tsx 的 ALL_ROUTES）：
+      // /rooms/:roomId、/rooms/:roomId/play、/rooms/:roomId/ending
+      { path: '/rooms/:roomId', element: <RoomPage /> },
+      { path: '/rooms/:roomId/play', element: <GamePage /> },
+      { path: '/rooms/:roomId/ending', element: <EndingPage /> },
+
+      // B 的 GamePage 会链到 /rooms/:roomId/character（AGENTS §2.2 的角色档案页）。
+      // A 的 CharacterPage 依赖 :scriptId，在房间语境下取不到剧本，故先保留占位，
+      // 待 A/B 对接「按 roomId 取当前玩家角色」。
       {
-        path: '/rooms/:roomId',
+        path: '/rooms/:roomId/character',
         element: (
           <PagePlaceholder
-            title="房间等候"
-            description="房间号、玩家列表、准备状态和房主开始。由 B 接入。"
+            title="角色档案"
+            description="按房间取当前玩家的角色与秘密。需要借助 roomId 取数据，待 A/B 对接。"
           />
         ),
       },
+
+      // 以下为 A 规划中的细化页面（10 页方案），当前没有实现，保留占位不删除。
       {
         path: '/rooms/:roomId/characters',
         element: (
           <PagePlaceholder
             title="角色选择"
             description="选择角色、查看公开介绍、准备与开始。由 B 接入。"
-          />
-        ),
-      },
-      {
-        path: '/rooms/:roomId/play',
-        element: (
-          <PagePlaceholder
-            title="游戏房间"
-            description="当前幕、剧情、AI DM、玩家列表和线索面板。由 B 接入。"
           />
         ),
       },
