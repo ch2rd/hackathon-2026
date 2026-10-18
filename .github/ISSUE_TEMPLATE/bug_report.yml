@@ -1,0 +1,68 @@
+name: 缺陷报告
+description: 报告一个可复现的缺陷
+title: "fix(模块): 一句话描述现象"
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈！请把「怎么复现」写清楚，否则队友只能靠猜。
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 现象
+      description: 实际发生了什么？期望发生什么？
+      placeholder: 点击「生成」后一直转圈，期望 3 秒内出结果。
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 按顺序写清每一步，最好能一次到位。
+      placeholder: |
+        1. 打开 ...
+        2. 输入 ...
+        3. 点击 ...
+    validations:
+      required: true
+
+  - type: input
+    id: frequency
+    attributes:
+      label: 出现频率
+      placeholder: 必现 / 偶现（约 3 次里 1 次）
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 严重程度
+      options:
+        - 阻塞演示（P0）
+        - 影响主流程（P1）
+        - 体验问题（P2）
+        - 文案 / 样式（P3）
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: 环境
+      placeholder: Windows 11 + Node 22 / Chrome 130 / commit abc1234
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志或截图
+      description: 请粘贴关键日志（注意先去掉密钥与个人信息）。
+      render: shell
+    validations:
+      required: false

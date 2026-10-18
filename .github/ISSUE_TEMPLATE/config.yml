@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 安全问题（请勿公开提交）
+    url: https://github.com/OWNER/REPO/security/advisories/new
+    about: 发现密钥泄露或安全漏洞时，请走私密渠道，不要开公开 Issue。
+  - name: 提交物清单与截止时间
+    url: https://github.com/OWNER/REPO/blob/main/docs/04-提交清单.md
+    about: 提交前请先按这份清单自查。
+  - name: 协作规范（分支 / 提交 / PR）
+    url: https://github.com/OWNER/REPO/blob/main/CONTRIBUTING.md
+    about: 动手之前先看一遍，能省掉一轮返工。

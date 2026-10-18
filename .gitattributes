@@ -1,0 +1,42 @@
+# 统一换行符：仓库内一律存 LF，检出时由 eol 规则决定
+* text=auto eol=lf
+
+# Windows 原生脚本必须 CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Shell 脚本必须 LF，否则 WSL / Linux CI 下无法执行
+*.sh text eol=lf
+.githooks/* text eol=lf
+
+# 二进制文件：不做换行转换，diff 不展开
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.docx binary
+*.pptx binary
+*.xlsx binary
+*.zip binary
+*.7z binary
+*.mp4 binary
+*.mov binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+
+# 锁文件：标记为生成物，减少 PR 噪音
+pnpm-lock.yaml -diff
+package-lock.json -diff
+yarn.lock -diff
+poetry.lock -diff
+uv.lock -diff
+
+# 语言统计：把文档和素材排除出代码行数
+docs/** linguist-documentation
+*.md linguist-documentation
+assets/** linguist-detectable=false
