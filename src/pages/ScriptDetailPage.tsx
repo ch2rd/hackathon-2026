@@ -1,17 +1,25 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { CharacterCard } from '../components/character/CharacterCard';
 import { ScriptCover } from '../components/scripts/ScriptCover';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
+import { Input } from '../components/ui/Input';
 import { SectionHeading } from '../components/ui/SectionHeading';
 import { Tag } from '../components/ui/Tag';
 import { getScriptDetail } from '../api/scripts';
+import { createRoom } from '../api/rooms';
+import { saveIdentity } from '../stores/gameStore';
 import type { ScriptDetail } from '../types/models';
 
 export default function ScriptDetailPage() {
   const { scriptId } = useParams<{ scriptId: string }>();
+  const navigate = useNavigate();
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [nickname, setNickname] = useState('玩家');
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
   const [script, setScript] = useState<ScriptDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -82,13 +90,14 @@ export default function ScriptDetailPage() {
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <Link to={`/scripts/${script.id}/character`}>
-              <Button size="lg">查看角色档案</Button>
+            <Button size="lg" onClick={() => setIsCreateOpen(true)}>
+              创建房间
+            </Button>
+            <Link to="/rooms/join">
+              <Button size="lg" variant="secondary">加入房间</Button>
             </Link>
-            <Link to="/scripts">
-              <Button size="lg" variant="secondary">
-                返回剧本库
-              </Button>
+            <Link to={`/scripts/${script.id}/character`}>
+              <Button size="lg" variant="ghost">查看角色档案</Button>
             </Link>
           </div>
         </div>
@@ -116,6 +125,63 @@ export default function ScriptDetailPage() {
           ))}
         </div>
       </section>
+
+      {isCreateOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-surface p-6 shadow-2xl">
+            <h2 className="font-display text-2xl text-paper">创建房间</h2>
+            <p className="mt-2 text-sm text-muted">剧本：{script.title}</p>
+
+            <label className="mt-6 block text-xs uppercase tracking-[0.24em] text-gold" htmlFor="nickname">
+              你的昵称
+            </label>
+            <Input
+              id="nickname"
+              value={nickname}
+              maxLength={12}
+              onChange={(event) => setNickname(event.target.value)}
+              placeholder="输入你的昵称"
+              className="mt-3"
+            />
+
+            {createError && <p className="mt-3 text-sm text-[#e5a4ae]">{createError}</p>}
+
+            <div className="mt-6 flex justify-end gap-3">
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setIsCreateOpen(false);
+                  setCreateError(null);
+                }}
+                disabled={creating}
+              >
+                取消
+              </Button>
+              <Button
+                disabled={creating || !nickname.trim()}
+                onClick={async () => {
+                  setCreating(true);
+                  setCreateError(null);
+                  try {
+                    const session = await createRoom({
+                      scriptId: script.id,
+                      nickname: nickname.trim(),
+                    });
+                    saveIdentity({ roomId: session.room.id, playerId: session.player.id });
+                    navigate(`/rooms/${session.room.id}`);
+                  } catch {
+                    setCreateError('创建房间失败，请重试');
+                  } finally {
+                    setCreating(false);
+                  }
+                }}
+              >
+                {creating ? '创建中…' : '创建并进入'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
