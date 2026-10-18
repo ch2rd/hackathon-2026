@@ -59,6 +59,15 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
+      # 必须显式指定 Node：runner 自带的是 20.x，而 package.json 的
+      # check:scripts / smoke:api 用了 node --experimental-strip-types（需 >= 22.6）。
+      # 不加这一步，main 一合并就会红在 project-checks。
+      # 刻意不开 cache：docs 类分支可能没有 package.json / lockfile，开了会直接失败。
+      - name: 准备 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - name: 运行项目自定义检查
         run: |
           if [ -f scripts/local-checks.sh ]; then
