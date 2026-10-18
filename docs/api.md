@@ -140,6 +140,7 @@ GET /api/rooms/:roomId/context?playerId=
 - [x] 剧本数据源统一为 `data/scripts/*.json`（见 [script-format.md](script-format.md)）
 - [x] Express 路由 + 服务层（真实模式）—— 全部 P0 端点已实现并通过全流程冒烟
 - [x] `POST /api/ai/hint` 接 OpenAI，8 秒超时降级 Mock
+- [x] `POST/GET /api/voice/signals` —— 玩家语音信令（见第十节）
 - [ ] `prisma/schema.prisma` 迁移：运行时状态目前落在 `.data/rooms.json`
       （`src/server/store/roomStore.ts`，零依赖实现）；schema 已按 §4 建好，
       换 Prisma 时只需替换该文件，路由与服务层不动
@@ -158,3 +159,60 @@ GET /api/rooms/:roomId/context?playerId=
 - 剧本列表 / 详情**不含** `murdererCharacterId` 与 `secret`；
 - `GET /rooms/:roomId/context` 在真实模式下 `murdererCharacterId` **恒为 `null`**；
 - 凶手指向只在 `status === 'ended'` 的 `room.state.result` 里出现。
+
+## 十、玩家语音信令（WebRTC）
+
+> 音频**不经过服务器**：说话声由浏览器之间 P2P 直连（WebRTC），
+> 服务端只负责在两边之间转发 SDP / ICE candidate 这些「小纸条」。
+> 因为 AGENTS.md §0.1 把 WebSocket 实时同步列为非目标，信令走**轮询**：
+> 真实模式用进程内队列（`src/server/services/voiceSignalService.ts`），
+> Mock 模式用 localStorage 队列（`src/api/mockAdapter.ts`）。
+
+### POST /api/voice/signals
+
+盲转发一条信令 —— 服务端**不解析** `payload`，只按收件人排队投递。
+
+```json
+{
+  "roomId": "room_xxx",
+  "fromPlayerId": "player_a",
+  "toPlayerId": "player_b",
+  "kind": "offer",
+  "payload": "{\"type\":\"offer\",\"sdp\":\"v=0\\r\\no=- ...\"}"
+}
+```
+
+→ `{ "data": { "ok": true } }`
+
+`kind` 取值：
+
+| kind | 用途 |
+| --- | --- |
+| `hello` | 我刚进语音频道，广播给房间里其他人 —— 用来发现谁真的开了麦，避免对没加入的人白建连接 |
+| `offer` / `answer` | SDP 交换，由 `playerId` 字典序小的一方发起（确定性规则，天然无 glare） |
+| `ice` | ICE candidate，逐个转发，用于打通 NAT |
+
+`payload` 上限 20000 字符（SDP 一般 2～8KB），`express.json` 全局上限 100kb。
+
+### GET /api/voice/signals?roomId=&playerId=
+
+取走**投递给 `playerId`** 的全部信令，**取走即删除**。
+
+→ `{ "data": VoiceSignal[] }`
+
+已由单测钉死的不变量（`voiceSignalService.test.ts`）：
+
+- 同一条信令**绝不重复投递**（重复 `addIceCandidate` 会让握手乱掉）；
+- 只投给收件人，别人的信令不会被顺手取走；
+- 超过 60 秒的过期信令直接丢弃；
+- 队列纯内存、按房间隔离、上限 200 条；进程重启后重新握手即可。
+
+对应前端函数：`sendVoiceSignal(input)` / `pollVoiceSignals(roomId, playerId)`（`src/api/voice.ts`）。
+
+### 演示前提（重要）
+
+`getUserMedia` 只在 **https 或 localhost** 存在。用 `http://局域网IP:5173` 访问时
+`navigator.mediaDevices` 直接是 `undefined`，浏览器会禁掉麦克风。
+需改用 https，或在 Chrome 打开
+`chrome://flags/#unsafely-treat-insecure-origin-as-secure` 把本站加进白名单后重启浏览器。
+前端会检测到这个状态并如实提示，不会假装能用。

@@ -14,6 +14,8 @@ import type {
   RoomState,
   ScriptDetail,
   ScriptSummary,
+  VoiceSignal,
+  VoiceSignalKind,
 } from '../types/models';
 import type { RoomContext, RoomSession } from '../types/api';
 
@@ -30,6 +32,15 @@ export interface JoinRoomInput {
 export interface ScriptQuery {
   genre?: Genre;
   keyword?: string;
+}
+
+/** 发一条语音信令（SDP / ICE 的盲转发）。 */
+export interface SendSignalInput {
+  roomId: string;
+  fromPlayerId: string;
+  toPlayerId: string;
+  kind: VoiceSignalKind;
+  payload: string;
 }
 
 export interface ApiAdapter {
@@ -54,4 +65,9 @@ export interface ApiAdapter {
   // ---- AI ----
   getAIHint(roomId: string, playerId: string): Promise<AIHint>;
   askAiDm(question: string): Promise<AIChatReply>;
+
+  // ---- 玩家语音信令（音频本身走 WebRTC P2P，不经过这里）----
+  sendSignal(input: SendSignalInput): Promise<void>;
+  /** 取走「投递给我」的全部信令（取走即删除，不重复投递）。 */
+  pollSignals(roomId: string, playerId: string): Promise<VoiceSignal[]>;
 }

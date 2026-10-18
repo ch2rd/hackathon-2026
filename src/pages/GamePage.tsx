@@ -14,6 +14,7 @@ import { ClueList } from '../components/game/ClueList';
 import { DemoAdvanceButton } from '../components/game/DemoAdvanceButton';
 import { SceneExplorer } from '../components/game/SceneExplorer';
 import { SfxToggle } from '../components/game/SfxToggle';
+import { VoiceBar } from '../components/game/VoiceBar';
 import { VotePanel } from '../components/game/VotePanel';
 import { resolveActScene, resolveMemoryFilter } from '../components/game/visuals';
 import { playSfx } from '../game/audio';
@@ -113,6 +114,8 @@ export function GamePage() {
           </Link>
         </div>
       </header>
+
+      <VoiceBar />
 
       {status === 'offline' && (
         <div className="flex items-center justify-between rounded-md border border-red-900 bg-red-950 p-3 text-sm text-red-200">

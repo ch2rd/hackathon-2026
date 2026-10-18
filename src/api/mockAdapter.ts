@@ -30,10 +30,24 @@ import {
   toCatalog,
 } from '../mocks/mockEngine';
 import { loadScriptBundles } from '../mocks/scriptCatalog';
-import type { ApiAdapter } from './adapter';
+import type { VoiceSignal } from '../types/models';
+import type { ApiAdapter, SendSignalInput } from './adapter';
 import { ApiError } from './client';
 
 const STORAGE_KEY = 'truth-bureau/mock-state/v1';
+
+/**
+ * 语音信令队列（与房间状态分开存）。
+ *
+ * 为什么不塞进 MockDb：信令是**高频、短命、取走即删**的传输数据，
+ * 而 MockDb 是房间状态快照（roomStore 也按那个形状读盘）。混在一起会让
+ * 状态文件每次轮询都重写一遍，还会把信令写进持久化存储。
+ */
+const SIGNAL_KEY = 'truth-bureau/mock-signals/v1';
+/** 超过 60 秒的信令直接丢弃（WebRTC 握手早超时了，留着只会拖慢轮询）。 */
+const SIGNAL_TTL_MS = 60_000;
+/** 队列上限，防止某个标签页离开后堆积。 */
+const SIGNAL_MAX = 200;
 
 function readDb(): MockDb {
   try {
@@ -62,6 +76,30 @@ function writeDb(db: MockDb): void {
 
 async function loadCatalog(): Promise<ScriptCatalog> {
   return toCatalog(await loadScriptBundles());
+}
+
+function readSignals(): VoiceSignal[] {
+  try {
+    const raw = localStorage.getItem(SIGNAL_KEY);
+    if (!raw) return [];
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    const now = Date.now();
+    return (parsed as VoiceSignal[]).filter(
+      (signal) => typeof signal?.createdAt === 'string' && now - Date.parse(signal.createdAt) < SIGNAL_TTL_MS,
+    );
+  } catch {
+    // 存储被禁用或数据损坏：信令丢了顶多连不上语音，不该拖垮整个游戏
+    return [];
+  }
+}
+
+function writeSignals(signals: VoiceSignal[]): void {
+  try {
+    localStorage.setItem(SIGNAL_KEY, JSON.stringify(signals.slice(-SIGNAL_MAX)));
+  } catch {
+    // 同上：静默失败，不抛错
+  }
 }
 
 export const mockAdapter: ApiAdapter = {
@@ -151,5 +189,23 @@ export const mockAdapter: ApiAdapter = {
 
   async askAiDm(question) {
     return buildAIChatReply(question);
+  },
+
+  async sendSignal(input: SendSignalInput) {
+    const signal: VoiceSignal = {
+      id: `sig_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      ...input,
+      createdAt: new Date().toISOString(),
+    };
+    writeSignals([...readSignals(), signal]);
+  },
+
+  async pollSignals(roomId, playerId) {
+    const all = readSignals();
+    const mine = all.filter((signal) => signal.roomId === roomId && signal.toPlayerId === playerId);
+    if (mine.length > 0) {
+      writeSignals(all.filter((signal) => !mine.includes(signal)));
+    }
+    return mine;
   },
 };

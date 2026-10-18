@@ -12,6 +12,7 @@ import type {
   RoomState,
   ScriptDetail,
   ScriptSummary,
+  VoiceSignal,
 } from '../types/models';
 import type { ApiAdapter } from './adapter';
 import { listRequest, post, request, withQuery } from './client';
@@ -80,5 +81,13 @@ export const httpAdapter: ApiAdapter = {
 
   askAiDm(question) {
     return post<AIChatReply>('/api/ai/chat', { question });
+  },
+
+  async sendSignal(input) {
+    await post<{ ok: boolean }>('/api/voice/signals', input);
+  },
+
+  pollSignals(roomId, playerId) {
+    return request<VoiceSignal[]>(withQuery('/api/voice/signals', { roomId, playerId }));
   },
 };

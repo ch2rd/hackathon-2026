@@ -20,6 +20,7 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { aiRouter } from './routes/ai';
 import { roomRouter } from './routes/rooms';
 import { scriptRouter } from './routes/scripts';
+import { voiceRouter } from './routes/voice';
 import { storeFilePath } from './store/roomStore';
 
 /** 组装 Express 应用但**不监听端口**。测试直接复用。 */
@@ -36,6 +37,7 @@ export function createApp(): express.Express {
   app.use('/api/scripts', scriptRouter);
   app.use('/api/rooms', roomRouter);
   app.use('/api/ai', aiRouter);
+  app.use('/api/voice', voiceRouter);
 
   // 兜底：未知路由 → NOT_FOUND；所有异常 → 统一错误体
   app.use(notFoundHandler);

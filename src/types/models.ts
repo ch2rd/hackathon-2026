@@ -198,6 +198,35 @@ export interface AIChatReply {
   source: 'llm' | 'mock';
 }
 
+// ---------- 玩家语音：WebRTC 信令（C 维护）----------
+
+/**
+ * 信令类型。
+ *
+ * - `hello`：我刚进入语音频道，广播给房间里其他人 —— 用来「发现」谁开了麦，
+ *   避免对没加入语音的人白白建立连接；
+ * - `offer` / `answer`：SDP 交换，由 playerId 字典序小的一方发起，天然无 glare；
+ * - `ice`：ICE candidate，逐个转发，用于打通 NAT。
+ */
+export type VoiceSignalKind = 'hello' | 'offer' | 'answer' | 'ice';
+
+/**
+ * 一条语音信令。
+ *
+ * 设计成「盲转发」：服务端不理解 payload 的内容（SDP 或 ICE candidate 的 JSON 字符串），
+ * 只按 `roomId` + `toPlayerId` 排队投递。这样信令层永远不需要跟着 WebRTC 演进而改。
+ * 音频本身走 P2P 直连，**不经过服务器**。
+ */
+export interface VoiceSignal {
+  id: string;
+  roomId: string;
+  fromPlayerId: string;
+  toPlayerId: string;
+  kind: VoiceSignalKind;
+  payload: string;
+  createdAt: string;
+}
+
 // ---------- 剧本包：data/scripts/*.json 的文件格式（C 维护）----------
 
 /**
