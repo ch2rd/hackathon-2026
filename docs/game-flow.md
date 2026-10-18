@@ -1,101 +1,100 @@
-# 游戏流程与状态机（B 负责）
+# docs/game-flow.md — 房间状态机与 UI 流程（B 维护）
 
-> 本文档是 B 的交付物，与 [AGENTS.md](../AGENTS.md) §4.10 / §4.11 保持一致；
-> 冲突时以 AGENTS.md 为准。
+> 规则唯一来源：`AGENTS.md` §4.10 / §4.11 / §5。本文档只描述实现与边界约定，
+> 不新增规则；本文档写到的「保守约定」需群里确认后回填 AGENTS.md。
 
-## 一、房间状态机
+## 1. 状态机总览
+
+实现位置：`src/game/stateMachine.ts`（纯函数，不依赖 React/网络）。
 
 ```text
 waiting（等人）
-  │  房主开始，且玩家数 >= 2
+  │ start：仅房主 + 玩家数 >= 2            [demoAdvance：房主可绕过人数]
   ▼
 selecting（选角）
-  │  所有玩家都选了角色并准备
+  │ 全员 characterId != null 且 isReady    （selectCharacter / setReady 后自动检查）
   ▼
-playing（剧情/线索）
-  │  最后一幕结束
+playing（剧情/线索，currentAct: 1..N）
+  │ nextAct：仅房主；最后一幕后再点         [demoAdvance：可直接跳]
   ▼
 voting（投票）
-  │  所有玩家都投完
+  │ submitVote：一人一票、禁投自己；全员投完 [demoAdvance：按已投结算]
   ▼
-ended（结局）
+ended（只读，result 非空；「再来一局」= 新建房间）
 ```
 
-规则（详见 AGENTS.md §4.10）：
+事件与接口一一对应（`applyEvent`）：
 
-- `waiting`：可加入；房主可开始；不足 2 人不能开始。
-- `selecting`：每个玩家只能选一个未被选的角色；全部准备后自动进入 `playing`。
-- `playing`：只有房主能点「下一幕」；最后一幕结束后进入 `voting`。
-- `voting`：每人只能投一次，不能投自己；全部投完自动进入 `ended`。
-- `ended`：只读；「再来一局」创建新房间，不复用旧状态。
-- **演示兜底**：房主「演示推进」强制下一幕/结束，需二次确认，仅 `VITE_DEMO_MODE=true` 显示。
-
-## 二、主数据源 RoomState
-
-```ts
-export interface PublicPlayer {
-  id: string;
-  nickname: string;
-  characterId: string | null;
-  characterName: string | null;
-  isHost: boolean;
-  isReady: boolean;
-}
-
-export interface RoomState {
-  room: Room;
-  players: PublicPlayer[];
-  currentAct: ScriptAct | null;
-  me: {
-    player: Player;
-    character: Character | null;
-    visibleClues: Clue[];
-  };
-  votes: Array<{ voterPlayerId: string; targetPlayerId: string }>;
-  result: {
-    murdererCharacterId: string;
-    topVotedCharacterId: string | null;
-    isCorrect: boolean;
-  } | null;
-}
-```
-
-> `result` 只在 `status === 'ended'` 时非空。
-> `me.character.secret` 与 `me.visibleClues` 只含当前玩家有权看到的内容。
-
-## 三、每个状态的 UI 映射
-
-| 状态 | 页面/组件 | 关键交互 | 异常分支 |
+| 事件 | 对应接口（§5.3） | 允许状态 | 权限 |
 | --- | --- | --- | --- |
-| waiting | `RoomPage` | 玩家列表实时刷新、房主「开始」 | 人数不足时开始按钮禁用 |
-| selecting | `RoomPage` | 选角、准备/取消 | 角色被抢 → 提示并刷新 |
-| playing | `GamePage` | 当前幕、线索、AI 推理 | AI 失败 → 降级提示，不阻塞 |
-| voting | `GamePage`（投票阶段） | 投票、票数 | 重复投票/投自己 → 拒绝 |
-| ended | `EndingPage` | 结果、真相、再来一局 | - |
+| `start` | POST `/start` | waiting | 仅房主，人数 ≥ 2 |
+| `selectCharacter` | POST `/select-character` | selecting | 本人；角色未被抢 |
+| `setReady` | POST `/ready` | selecting | 本人；先选角才能准备 |
+| `nextAct` | POST `/next-act` | playing | 仅房主 |
+| `submitVote` | POST `/votes` | voting | 本人；未投过；不投自己 |
+| `demoAdvance` | POST `/finish`（或连点 next） | waiting/playing/voting | 仅房主 + `VITE_DEMO_MODE=true` |
 
-## 四、轮询与恢复
+错误码复用 §5.2：`VALIDATION_ERROR` / `NOT_FOUND` / `INVALID_STATE` / `FORBIDDEN`。
 
-- 每 2 秒轮询 `getRoomState(roomId, playerId)`，组件卸载时清理定时器。
-- `playerId` 持久化到 `localStorage`，刷新页面后据此恢复身份。
+## 2. 每个状态的 UI（页面 ↔ 状态映射）
 
-## 五、验收标准（B）
+| RoomStatus | 路由 | UI 要点 | 当前玩家能做什么 |
+| --- | --- | --- | --- |
+| `waiting` | `/rooms/:roomId` | 房间号大字展示、玩家列表 + 「虚位以待」空位、房主标记 | 所有人可被邀请加入；房主看「开始选角」（置灰原因用 `startBlockReason`），非房主看「等待房主开始」 |
+| `selecting` | `/rooms/:roomId` | 角色卡片列表（`availableCharacters`：已被选的置灰并显示被谁选走）、准备按钮（未选角时禁用） | 选角色 → 准备；全员就绪后自动跳转 `/rooms/:roomId/character` |
+| `playing` | `/rooms/:roomId/character` → `/rooms/:roomId/play` | 角色档案（自己的 secret/goals）；游戏页显示 `currentAct` 旁白、线索卡片（公开 + 仅自己的私密）、AI 推理入口 | 阅读、AI 推理；房主额外有「下一幕」（`canNextAct`，最后一幕文案变「进入投票」） |
+| `voting` | `/rooms/:roomId/play`（投票是阶段，不是独立路由） | 候选人列表 = `voteTargets`（除自己），显示投票进度 `voteProgress`，已投后置灰 | 投一票；已投的人看「等待其他玩家（x/y）」 |
+| `ended` | `/rooms/:roomId/ending` | 投票统计、凶手揭晓、`result.isCorrect` 两种文案（推理成功/真相逃脱）、「再来一局」 | 只读；「再来一局」= 回剧本详情创建新房间，不复用旧状态 |
 
-- 3 个浏览器标签页在 Mock 模式完成一整局。
-- 刷新后根据 `localStorage.playerId` 恢复房间。
-- 每个 `RoomStatus` 都有对应 UI，无白屏/死路。
-- 角色被选走后其他玩家不能再选。
-- 投票每人一次、不能投自己。
-- AI 失败显示降级提示，不阻塞投票和结局。
-- 页面不直接 `fetch`，全部走 `src/api`。
-- 复用 A 的 UI 组件，不新增颜色/字体。
+每个状态都有兜底 UI：未知状态渲染 ErrorState +「刷新重试」，不会白屏（§3.3 验收）。
 
-## 六、测试（Vitest）
+## 3. gameStore（Zustand）职责划分
 
-- 状态机纯函数（`src/game/stateMachine.ts`），不依赖 React。
-- 至少覆盖：正常推进 + 3 个异常分支。
+`src/stores/gameStore.ts`：
 
-## 七、待办
+- 持有：`playerId`（localStorage 持久化）、当前 `RoomState`、`GameContext`（剧本公开数据）、轮询定时器、错误状态。
+- Mock 模式（`VITE_USE_MOCK=true`）：本地用状态机推进 → 写 localStorage → 广播 `storage` 事件。
+- 真实模式：调 `src/api/rooms.ts`，服务端返回的 `RoomState` **直接覆盖**本地状态；
+  状态机仅用于提前置灰按钮/乐观更新，冲突时以服务端为准。
+- 不存放：别人的 `secret`、别人的私密线索、结局前的 `murdererCharacterId`（§3.3 红线）。
 
-- [ ] `docs/game-flow.md` 状态机每个迁移的精确条件核对
-- [ ] 状态机单元测试编写
-- [ ] 投票/结局的 UI 细节
+轮询：进入房间后每 2 秒 `getRoomState`；`ended` 或组件卸载时停止；请求失败进入
+`isOffline` 提示态，不崩溃、不清空已有状态。
+
+## 4. 异常分支
+
+| 场景 | 行为 |
+| --- | --- |
+| 刷新/误关页面 | 用 localStorage 的 `playerId` + 最后已知 `roomId` 调 `getRoomState` 恢复，落到正确路由（按 `room.status` 重定向） |
+| 两个标签页同时抢同一角色 | 后到者收到 `INVALID_STATE`：toast「角色已被选走」，立即 `getRoomState` 同步 |
+| 非房主收到房主操作并发（如两人各开标签页同为…不存在；指房主标签页连点） | 以返回的最新 `RoomState` 覆盖本地，按钮由 selector 重新计算 |
+| 投票时重复提交（双击） | 前端 `hasVoted` 置灰 + 服务端 `INVALID_STATE` 双保险 |
+| 轮询失败/后端挂掉 | 显示离线提示 + 重试按钮；Mock 模式不受影响（§10.3 兜底） |
+| AI 接口失败/无 Key | 游戏页 AI 卡片显示降级提示（`source: 'mock'`），不阻塞投票和结局 |
+| 房间号错误/玩家被踢类不存在 | `NOT_FOUND` → 引导回首页 |
+
+## 5. 平票与结算规则（已按本文档实现，待群内确认）
+
+- 每人一人一票，全员投完自动 `ended`。
+- 票数最高者唯一 → `topVotedCharacterId` = 该玩家角色；**平票 → `topVotedCharacterId = null`**，
+  结局页显示「无人被推出，真凶混在人群里」，`isCorrect = false`。
+- 真实模式该结算由服务端完成；Mock 模式由 `buildEnding` 完成，同一套 `tallyVotes` 逻辑。
+
+## 6. 本文档登记的「保守约定」（AGENTS.md 未明说，实现时取的默认值）
+
+1. 已准备的玩家想换角色：必须先「取消准备」（§4.10 只说选了不能让别人选，没说能否换）。
+2. 平票 = 无人被推出、判定不中（§4.10 未定义平票）。
+3. `demoAdvance` 不允许跳过选角阶段（跳过选角会破坏「秘密只对自己可见」的演示效果）。
+4. 「再来一局」创建新房间（§4.10 已写明，这里只是流程确认：结束页按钮 → 剧本详情页）。
+
+> 以上 4 条若群内有不同意见，改 `stateMachine.ts` + 本文档 + 测试，不动接口。
+
+## 7. 测试
+
+`src/game/stateMachine.test.ts`（Vitest）：
+正常全流程（开局→选角→自动进 playing→两幕→投票→ended 结算）+
+异常分支（人数不足、非房主 FORBIDDEN、抢角色、未选角不能准备、换角色需取消准备、
+错误状态操作、投自己 VALIDATION_ERROR、重复投票、投错凶手、平票 null、NOT_FOUND、
+demoAdvance 三个分支、ended 只读、选择器与状态机判定一致性）。
+
+运行：`npm test`（含 `npm run typecheck`）。
