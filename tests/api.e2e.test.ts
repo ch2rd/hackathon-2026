@@ -1,5 +1,10 @@
+// @vitest-environment node
 /**
  * 真实后端端到端测试（C 维护）。
+ *
+ * 环境钉死为 node：B 的 vitest.config.ts 把 `environment` 全局设成 jsdom，
+ * 而本用例要真起 HTTP 服务、调 fetch、写临时文件，不该跑在 jsdom 里。
+ * 这条指令只影响本文件，不动 B 的配置。
  *
  * 从 `scripts/smoke-api.ts` 升级而来：那个脚本要先手动起服务，进不了 CI；
  * 这里在进程内用随机端口起一份真实 Express（同一个 createApp 工厂），
