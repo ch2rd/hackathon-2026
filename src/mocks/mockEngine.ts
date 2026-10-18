@@ -212,6 +212,9 @@ function maybeEnterPlaying(db: MockDb, room: Room): void {
   if (!players.every((player) => player.characterId !== null && player.isReady)) return;
   room.status = 'playing';
   room.currentAct = 1;
+  players.forEach((player) => {
+    player.isReady = false;
+  });
 }
 
 // ---------- 剧本库（纯查表，与存储无关）----------
@@ -375,13 +378,17 @@ export function setReady(
   const bundle = requireBundle(catalog, room.scriptId);
   const me = requirePlayer(db, room, playerId);
 
-  if (room.status !== 'selecting') throw new ApiError('INVALID_STATE', '当前不是选角阶段');
-  if (isReady && me.characterId === null) {
+  if (room.status !== 'selecting' && room.status !== 'playing') {
+    throw new ApiError('INVALID_STATE', '当前阶段不能确认');
+  }
+  if (room.status === 'selecting' && isReady && me.characterId === null) {
     throw new ApiError('VALIDATION_ERROR', '请先选择角色，再点准备');
   }
 
   me.isReady = isReady;
-  maybeEnterPlaying(db, room);
+  if (room.status === 'selecting') {
+    maybeEnterPlaying(db, room);
+  }
   return buildRoomState(db, room, playerId, bundle);
 }
 
@@ -418,6 +425,12 @@ export function nextAct(
   if (room.hostPlayerId !== me.id) throw new ApiError('FORBIDDEN', '只有房主可以推进剧情');
   if (room.status !== 'playing') throw new ApiError('INVALID_STATE', '当前不在剧情阶段');
 
+  // 专业流程：当前幕所有玩家都确认讨论完成后，房主才能推进
+  const players = playersOf(db, room);
+  if (!players.every((player) => player.isReady)) {
+    throw new ApiError('INVALID_STATE', '还有玩家未确认本幕讨论完成');
+  }
+
   // 最后几幕由数据决定，不写死幕数
   const lastAct = bundle.acts.reduce((max, act) => Math.max(max, act.actNumber), 0);
   if (room.currentAct >= lastAct) {
@@ -425,6 +438,9 @@ export function nextAct(
   } else {
     room.currentAct += 1;
   }
+  players.forEach((player) => {
+    player.isReady = false;
+  });
 
   return buildRoomState(db, room, playerId, bundle);
 }

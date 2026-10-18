@@ -272,10 +272,20 @@ describe('完整一局（真实 HTTP，不假设哪本是凶手）', () => {
   });
 
   it('推进到投票，且揭晓前不下发凶手', async () => {
+    const playerIds = [flow.hostId, flow.guestId, flow.thirdId];
+    const confirmCurrentAct = async () => {
+      for (const playerId of playerIds) {
+        await post(`/api/rooms/${flow.roomId}/ready`, { playerId, isReady: true });
+      }
+    };
+
+    // 第 1 幕：全员确认讨论完成后，房主推进
+    await confirmCurrentAct();
     let current = await post(`/api/rooms/${flow.roomId}/next-act`, { playerId: flow.hostId });
     let guard = 0;
 
     while (asObject(data(current).room).status === 'playing' && guard < 50) {
+      await confirmCurrentAct();
       current = await post(`/api/rooms/${flow.roomId}/next-act`, { playerId: flow.hostId });
       guard += 1;
     }

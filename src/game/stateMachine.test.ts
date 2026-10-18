@@ -116,13 +116,24 @@ function advanceToPlaying(): RoomState {
   return state;
 }
 
+/** 当前幕所有玩家确认讨论完成（专业流程：房主必须在全员确认后才能推进）。 */
+function confirmAll(state: RoomState): RoomState {
+  let next = state;
+  for (const player of state.players) {
+    const ready = applyEvent(next, ctx, { type: 'setReady', playerId: player.id, isReady: true });
+    expect(ready.ok).toBe(true);
+    if (!ready.ok) throw new Error('unreachable');
+    next = ready.state;
+  }
+  return next;
+}
+
 function advanceToVoting(): RoomState {
-  let state = advanceToPlaying();
-  // p1/p2 提前准备（上面只 p3 走完了流程，前两人也已 ready）
+  let state = confirmAll(advanceToPlaying());
   const act2 = applyEvent(state, ctx, { type: 'nextAct', actorPlayerId: 'p1' });
   expect(act2.ok).toBe(true);
   if (!act2.ok) throw new Error('unreachable');
-  state = act2.state;
+  state = confirmAll(act2.state);
   const toVoting = applyEvent(state, ctx, { type: 'nextAct', actorPlayerId: 'p1' });
   expect(toVoting.ok).toBe(true);
   if (!toVoting.ok) throw new Error('unreachable');
@@ -152,7 +163,7 @@ describe('正常全流程推进', () => {
   });
 
   it('下一幕解锁新公开线索，别人的私密线索不出现', () => {
-    const playing = advanceToPlaying();
+    const playing = confirmAll(advanceToPlaying());
     const result = applyEvent(playing, ctx, { type: 'nextAct', actorPlayerId: 'p1' });
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -373,10 +384,12 @@ describe('选择器与状态机判定一致', () => {
 
   it('canNextAct / isFinalAct / isAllSelectedAndReady / voteTargets', () => {
     const playing = advanceToPlaying();
-    expect(canNextAct(playing, 'p1')).toBe(true);
-    expect(canNextAct(playing, 'p2')).toBe(false);
-    expect(isFinalAct(playing, ctx)).toBe(false);
-    expect(isAllSelectedAndReady(playing)).toBe(true);
+    expect(canNextAct(playing, 'p1')).toBe(false);
+    expect(isAllSelectedAndReady(playing)).toBe(false);
+    const confirmed = confirmAll(playing);
+    expect(canNextAct(confirmed, 'p1')).toBe(true);
+    expect(canNextAct(confirmed, 'p2')).toBe(false);
+    expect(isFinalAct(confirmed, ctx)).toBe(false);
     const voting = advanceToVoting();
     expect(isFinalAct({ ...voting, room: { ...voting.room, status: 'playing', currentAct: 2 } }, ctx)).toBe(true);
     expect(voteTargets(voting, 'p1').map((p) => p.id)).toEqual(['p2', 'p3']);

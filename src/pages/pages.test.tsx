@@ -135,11 +135,20 @@ describe('RoomPage', () => {
 });
 
 describe('GamePage', () => {
-  it('playing：显示旁白与线索区，房主可点「下一幕」', async () => {
-    const api = makeApi(makeRoomState({ room: { status: 'playing', currentAct: 1 }, currentAct: act1 }));
+  it('playing：显示旁白与线索区，全员确认后房主可点「下一幕」', async () => {
+    const state = makeRoomState({
+      room: { status: 'playing', currentAct: 1 },
+      currentAct: act1,
+      players: [
+        { id: 'p1', nickname: '小A', characterId: 'c_butler', characterName: '管家', isHost: true, isReady: true },
+        { id: 'p2', nickname: '小B', characterId: 'c_doctor', characterName: '医生', isHost: false, isReady: true },
+      ],
+    });
+    const api = makeApi(state);
     configureRoomsApi(api);
     renderPage('/rooms/:roomId/play', <GamePage />, '/rooms/r1/play');
     expect(await screen.findByText(/雷声过后/)).toBeInTheDocument();
+    expect(screen.getByText('本幕讨论')).toBeInTheDocument();
     expect(screen.getByTestId('ai-hint-card')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '下一幕' }));
     expect(api.nextAct).toHaveBeenCalledWith('r1', 'p1');

@@ -131,7 +131,10 @@ function resolveMyCharacter(ctx: GameContext, characterId: string | null): Chara
  */
 function maybeEnterPlaying(state: RoomState, ctx: GameContext): RoomState {
   if (state.room.status !== 'selecting' || !isAllSelectedAndReady(state)) return state;
-  const players = withCharacterNames(state.players, ctx);
+  const players = withCharacterNames(state.players, ctx).map((player) => ({
+    ...player,
+    isReady: false,
+  }));
   const myCharId = players.find((p) => p.id === state.me.player.id)?.characterId ?? null;
   const firstAct = ctx.acts[0] ?? null;
   return {
@@ -140,7 +143,7 @@ function maybeEnterPlaying(state: RoomState, ctx: GameContext): RoomState {
     players,
     currentAct: firstAct,
     me: {
-      player: { ...state.me.player, characterId: myCharId },
+      player: { ...state.me.player, characterId: myCharId, isReady: false },
       character: state.me.character ?? resolveMyCharacter(ctx, myCharId),
       visibleClues: computeVisibleClues(ctx, myCharId, firstAct?.actNumber ?? 1),
     },
@@ -210,18 +213,40 @@ export function setReady(
   playerId: string,
   isReady: boolean
 ): TransitionResult {
-  if (state.room.status !== 'selecting') return fail('INVALID_STATE', '当前状态不能修改准备状态');
+  if (state.room.status !== 'selecting' && state.room.status !== 'playing') {
+    return fail('INVALID_STATE', '当前阶段不能确认');
+  }
   const player = findPlayer(state, playerId);
   if (!player) return fail('NOT_FOUND', '玩家不存在');
-  if (isReady && player.characterId === null) {
+  if (state.room.status === 'selecting' && isReady && player.characterId === null) {
     return fail('INVALID_STATE', '请先选择角色再准备');
   }
   const players = state.players.map((p) => (p.id === playerId ? { ...p, isReady } : p));
-  return { ok: true, state: maybeEnterPlaying({ ...state, players }, ctx) };
+  const next: RoomState = {
+    ...state,
+    players,
+    me: {
+      ...state.me,
+      player:
+        playerId === state.me.player.id
+          ? { ...state.me.player, isReady }
+          : state.me.player,
+    },
+  };
+  return {
+    ok: true,
+    state: state.room.status === 'selecting' ? maybeEnterPlaying(next, ctx) : next,
+  };
 }
 
 function enterVoting(state: RoomState): RoomState {
-  return { ...state, room: { ...state.room, status: 'voting' }, result: null };
+  return {
+    ...state,
+    room: { ...state.room, status: 'voting' },
+    players: state.players.map((player) => ({ ...player, isReady: false })),
+    me: { ...state.me, player: { ...state.me.player, isReady: false } },
+    result: null,
+  };
 }
 
 /** playing 阶段下一幕：仅房主；最后一幕结束后进入 voting。 */
@@ -230,6 +255,9 @@ export function nextAct(state: RoomState, ctx: GameContext, actorPlayerId: strin
   if (!actor) return fail('NOT_FOUND', '玩家不存在');
   if (state.room.status !== 'playing') return fail('INVALID_STATE', '当前状态不能推进剧情');
   if (!actor.isHost) return fail('FORBIDDEN', '只有房主可以推进剧情');
+  if (!state.players.every((player) => player.isReady)) {
+    return fail('INVALID_STATE', '还有玩家未确认本幕讨论完成');
+  }
 
   const current = state.room.currentAct;
   if (current >= lastActNumber(ctx)) {
@@ -242,8 +270,10 @@ export function nextAct(state: RoomState, ctx: GameContext, actorPlayerId: strin
       ...state,
       room: { ...state.room, currentAct: actNumber },
       currentAct: actByNumber(ctx, actNumber),
+      players: state.players.map((player) => ({ ...player, isReady: false })),
       me: {
         ...state.me,
+        player: { ...state.me.player, isReady: false },
         visibleClues: computeVisibleClues(ctx, state.me.player.characterId, actNumber),
       },
     },

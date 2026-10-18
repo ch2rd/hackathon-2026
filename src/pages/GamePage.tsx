@@ -18,6 +18,7 @@ import {
   canDemoAdvance,
   canNextAct,
   isFinalAct,
+  readyProgress,
   voteCountsByPlayer,
   voteProgress,
   voteTargets,
@@ -95,12 +96,15 @@ export function GamePage() {
   const myVotedTargetId = roomState.votes.find((v) => v.voterPlayerId === me.id)?.targetPlayerId ?? null;
   const progress = voteProgress(roomState);
   const showDemoAdvance = canDemoAdvance(roomState, me.id, isDemoMode());
+  const ready = readyProgress(roomState);
+  const meReady = roomState.me.player.isReady;
+  const finalAct = context ? isFinalAct(roomState, context) : false;
 
   return (
     <section className="mx-auto flex max-w-3xl flex-col gap-5 p-6">
       <header className="flex items-end justify-between">
         <h1 className="text-xl font-medium">
-          {roomStatus === 'voting' ? '投票阶段' : `第 ${roomState.room.currentAct} 幕`}
+          {roomStatus === 'voting' ? '投票阶段' : `第 ${roomState.room.currentAct}${context ? ` / ${context.acts.length}` : ''} 幕`}
           {roomState.currentAct && roomStatus === 'playing' && (
             <span className="ml-2 text-base font-normal text-neutral-400">{roomState.currentAct.title}</span>
           )}
@@ -124,6 +128,44 @@ export function GamePage() {
 
       {roomStatus === 'playing' && (
         <>
+          <div className="rounded-md border border-neutral-800 bg-neutral-900 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-sm font-medium text-neutral-200">本幕讨论</h2>
+                <p className="mt-1 text-sm text-neutral-400">
+                  所有玩家确认讨论完成后，房主才能推进。已确认 {ready.confirmed}/{ready.total}
+                </p>
+              </div>
+              {meReady ? (
+                <span className="rounded-md border border-emerald-800 bg-emerald-950 px-3 py-2 text-sm text-emerald-300">
+                  已确认
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  disabled={isActing}
+                  onClick={() => void useGameStore.getState().setReady(true)}
+                  className="rounded-md border border-emerald-700 bg-emerald-900 px-3 py-2 text-sm font-medium disabled:opacity-50"
+                >
+                  本幕讨论完成
+                </button>
+              )}
+            </div>
+            <ul className="mt-3 grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">
+              {roomState.players.map((player) => (
+                <li
+                  key={player.id}
+                  className="flex items-center justify-between rounded border border-neutral-800 px-2 py-1"
+                >
+                  <span className="text-neutral-300">{player.nickname}</span>
+                  <span className={player.isReady ? 'text-emerald-400' : 'text-neutral-500'}>
+                    {player.isReady ? '已确认' : '讨论中'}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
           {roomState.currentAct && (
             <article className="rounded-md border border-neutral-800 bg-neutral-950 p-4">
               <p className="whitespace-pre-line text-sm leading-6 text-neutral-200">{roomState.currentAct.narration}</p>
@@ -134,13 +176,23 @@ export function GamePage() {
               <button
                 type="button"
                 disabled={isActing}
-                onClick={() => void useGameStore.getState().nextAct()}
+                onClick={() => {
+                  if (
+                    finalAct &&
+                    !window.confirm('所有玩家已确认本幕。确定进入最终投票吗？进入后将无法返回剧情阶段。')
+                  ) {
+                    return;
+                  }
+                  void useGameStore.getState().nextAct();
+                }}
                 className="rounded-md border border-emerald-700 bg-emerald-900 p-3 font-medium disabled:opacity-50"
               >
-                {context && isFinalAct(roomState, context) ? '进入投票' : '下一幕'}
+                {finalAct ? '确认进入投票' : '下一幕'}
               </button>
             ) : (
-              <p className="text-sm text-neutral-400">等待房主推进剧情…</p>
+              <p className="text-sm text-neutral-400">
+                等待所有玩家确认本幕讨论完成（{ready.confirmed}/{ready.total}）
+              </p>
             )}
           </div>
         </>

@@ -216,12 +216,19 @@ describe.each([
     expect(playing.room.status).toBe('playing');
     expect(playing.room.currentAct).toBe(1);
 
-    // 幕数由数据决定，不写死
+    // 幕数由数据决定，不写死；每幕都要全员确认后才能推进
     const lastAct = bundle.acts.reduce((max, act) => Math.max(max, act.actNumber), 0);
+    const playerIds = [host.player.id, p2.player.id, p3.player.id];
     for (let act = 1; act < lastAct; act += 1) {
+      for (const playerId of playerIds) {
+        setReady(db, catalog, host.room.id, playerId, true);
+      }
       nextAct(db, catalog, host.room.id, host.player.id);
     }
     expectApiError(() => nextAct(db, catalog, host.room.id, p2.player.id), 'FORBIDDEN');
+    for (const playerId of playerIds) {
+      setReady(db, catalog, host.room.id, playerId, true);
+    }
     expect(nextAct(db, catalog, host.room.id, host.player.id).room.status).toBe('voting');
 
     // 揭晓前不泄露凶手

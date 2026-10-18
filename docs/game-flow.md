@@ -48,7 +48,20 @@ ended（只读，result 非空；「再来一局」= 新建房间）
 
 每个状态都有兜底 UI：未知状态渲染 ErrorState +「刷新重试」，不会白屏（§3.3 验收）。
 
-## 3. gameStore（Zustand）职责划分
+## 2.1 每幕确认（专业剧本杀节奏）
+
+进入 `playing` 后，`Player.isReady` 的含义从「选角准备」切换为「本幕讨论完成」：
+
+1. 进入第 1 幕时，全员 `isReady` 重置为 `false`。
+2. 每个玩家阅读本幕剧情与线索后，点击「本幕讨论完成」，对应 `POST /ready`。
+3. 房主只有在 `players.every(p => p.isReady)` 时才能点「下一幕」。
+4. 推进到下一幕时，全员 `isReady` 再次重置为 `false`。
+5. 最后一幕全员确认后，房主看到「确认进入投票」，二次确认后进入 `voting`。
+6. 进入 `voting` 后不再允许回到 `playing`。
+
+这样避免房主连续点击「下一幕」跳过讨论，也避免第一幕直接进入投票。
+
+## 3. gameStore（Zustand）职责划分'
 
 `src/stores/gameStore.ts`：
 
