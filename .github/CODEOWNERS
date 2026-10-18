@@ -4,18 +4,18 @@
 # 语法：<模式>  <@用户或@组织/团队>  （多个属主用空格分隔）
 
 # 默认：仓库内所有文件由队长把关
-*                       @ch2nd
+*                       @ch2rd
 
 # 竞赛材料：文档负责人
-/docs/                  @ch2nd
-/README.md              @ch2nd
-/CHANGELOG.md           @ch2nd
+/docs/                  @ch2rd
+/README.md              @ch2rd
+/CHANGELOG.md           @ch2rd
 
 # 工程规范与 CI：任何改动都要过队长
-/.github/               @ch2nd
-/scripts/               @ch2nd
-/.githooks/             @ch2nd
+/.github/               @ch2rd
+/scripts/               @ch2rd
+/.githooks/             @ch2rd
 
 # 源码与测试：由对应模块负责人把关（按实际团队分工替换）
-/src/                   @ch2nd
-/tests/                 @ch2nd
+/src/                   @ch2rd
+/tests/                 @ch2rd
