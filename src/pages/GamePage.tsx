@@ -8,9 +8,7 @@
 
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { getAIHint } from '../api/ai';
 import { isDemoMode } from '../api/client';
-import { AIHintCard } from '../components/game/AIHintCard';
 import { CharacterIntro } from '../components/game/CharacterIntro';
 import { ClueList } from '../components/game/ClueList';
 import { DemoAdvanceButton } from '../components/game/DemoAdvanceButton';
@@ -28,8 +26,7 @@ import {
   voteProgress,
   voteTargets,
 } from '../game/selectors';
-import { loadIdentity, readApiError, useGameStore } from '../stores/gameStore';
-import type { AIHint } from '../types/models';
+import { loadIdentity, useGameStore } from '../stores/gameStore';
 
 export function GamePage() {
   const { roomId } = useParams<{ roomId: string }>();
@@ -41,10 +38,6 @@ export function GamePage() {
   const error = useGameStore((s) => s.error);
   const isActing = useGameStore((s) => s.isActing);
 
-  // AI 推理是「请求-展示」交互，不是游戏状态，放页面本地即可
-  const [hint, setHint] = useState<AIHint | null>(null);
-  const [isAskingAI, setIsAskingAI] = useState(false);
-  const [aiError, setAiError] = useState<string | null>(null);
   const [discoveredClueIds, setDiscoveredClueIds] = useState<Set<string>>(new Set());
   // 出场声明动画是否已看完（进入 playing 后先播一次）
   const [introDone, setIntroDone] = useState(false);
@@ -71,19 +64,6 @@ export function GamePage() {
       navigate(`/rooms/${roomId}/ending`, { replace: true });
     }
   }, [roomStatus, roomId, navigate]);
-
-  async function handleAskAI() {
-    if (!roomId || !roomState) return;
-    setIsAskingAI(true);
-    setAiError(null);
-    try {
-      setHint(await getAIHint(roomId, roomState.me.player.id));
-    } catch (aiFailure) {
-      setAiError(readApiError(aiFailure).message);
-    } finally {
-      setIsAskingAI(false);
-    }
-  }
 
   if (!roomState) {
     if (error?.code === 'NOT_FOUND') {
@@ -263,14 +243,6 @@ export function GamePage() {
         <h2 className="text-sm font-medium text-neutral-300">我的线索（{discoveredClues.length}）</h2>
         <ClueList clues={discoveredClues} />
       </div>
-
-      <AIHintCard
-        hint={hint}
-        isLoading={isAskingAI}
-        error={aiError}
-        canAsk={!isAskingAI}
-        onAsk={() => void handleAskAI()}
-      />
 
       {showDemoAdvance && (
         <footer className="border-t border-neutral-800 pt-4">

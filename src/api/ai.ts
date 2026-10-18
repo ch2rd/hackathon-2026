@@ -16,3 +16,8 @@ const adapter: ApiAdapter = isMockMode() ? mockAdapter : httpAdapter;
 export function getAIHint(roomId: string, playerId: string) {
   return adapter.getAIHint(roomId, playerId);
 }
+
+/** 首页 AI DM 问答（演示，无房间上下文）。 */
+export function askAiDm(question: string) {
+  return adapter.askAiDm(question);
+}

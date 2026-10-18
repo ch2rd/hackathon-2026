@@ -12,6 +12,7 @@
 
 import type { RoomContext, RoomSession } from '../types/api';
 import type {
+  AIChatReply,
   Character,
   CharacterPublic,
   Clue,
@@ -544,5 +545,17 @@ export function buildAIHint(db: MockDb, catalog: ScriptCatalog, roomId: string, 
     suspects,
     disclaimer: 'AI 仅根据你已获得的线索推测，不代表真相。',
     source: 'mock' as const,
+  };
+}
+
+/** 首页 AI DM 的确定性兜底回答（无 Key / 超时 / 失败时使用）。 */
+export function buildAIChatReply(question: string): AIChatReply {
+  return {
+    answer:
+      `现在是演示模式，我这边没有接上实时模型。针对「${question.trim()}」，可以先这样做：` +
+      '把线索按时间排成一条线，再标出每个人「声称的行踪」和「证据显示的行踪」，对不上的地方往往就是突破口。' +
+      '进入游戏后，我会直接读取你已获得的线索，给出嫌疑排序。',
+    disclaimer: 'AI DM 仅帮助你整理思路，不剧透凶手，也不替你做决定。',
+    source: 'mock',
   };
 }

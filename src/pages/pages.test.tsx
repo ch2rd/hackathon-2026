@@ -149,7 +149,6 @@ describe('GamePage', () => {
     renderPage('/rooms/:roomId/play', <GamePage />, '/rooms/r1/play');
     expect(await screen.findByText(/雷声过后/)).toBeInTheDocument();
     expect(screen.getByText('本幕讨论')).toBeInTheDocument();
-    expect(screen.getByTestId('ai-hint-card')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '下一幕' }));
     expect(api.nextAct).toHaveBeenCalledWith('r1', 'p1');
   });

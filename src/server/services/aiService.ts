@@ -9,7 +9,8 @@
 
 import OpenAI from 'openai';
 import { z } from 'zod';
-import type { AIHint } from '../../types/models';
+import { buildAIChatReply } from '../../mocks/mockEngine';
+import type { AIChatReply, AIHint } from '../../types/models';
 import { ApiError } from '../../utils/apiError';
 import { getRoomState, mockHint } from './roomService';
 
@@ -28,6 +29,15 @@ const HintSchema = z.object({
     )
     .min(1),
 });
+
+/** 容错解析模型输出：剥掉 ```json 围栏，截取首个 `{` 到最后一个 `}`，再 JSON.parse。 */
+function parseLenientJson(raw: string): unknown {
+  const unboxed = raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+  const start = unboxed.indexOf('{');
+  const end = unboxed.lastIndexOf('}');
+  if (start === -1 || end <= start) throw new Error('模型输出里没有 JSON 对象');
+  return JSON.parse(unboxed.slice(start, end + 1));
+}
 
 const SYSTEM_PROMPT = [
   '你是一名剧本杀推理助手，只能依据玩家已获得的线索做推断。',
@@ -73,7 +83,6 @@ export async function generateHint(roomId: string, playerId: string): Promise<AI
     const completion = await client.chat.completions.create({
       model: process.env.OPENAI_MODEL ?? 'gpt-4o-mini',
       temperature: 0.4,
-      response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: userPrompt },
@@ -81,7 +90,7 @@ export async function generateHint(roomId: string, playerId: string): Promise<AI
     });
 
     const raw = completion.choices[0]?.message?.content ?? '';
-    const parsed = HintSchema.safeParse(JSON.parse(raw));
+    const parsed = HintSchema.safeParse(parseLenientJson(raw));
 
     if (!parsed.success) {
       console.warn('[ai] 模型输出不符合结构，降级为 Mock');
@@ -112,5 +121,49 @@ export async function generateHint(roomId: string, playerId: string): Promise<AI
     console.warn('[ai] 调用失败，降级为 Mock：', (error as Error).message);
     if (error instanceof ApiError && error.code === 'NOT_FOUND') throw error;
     return mockHint(roomId, playerId);
+  }
+}
+
+const CHAT_SYSTEM_PROMPT = [
+  '你是《真相局》的 AI DM，一名剧本杀推理陪练。',
+  '要求：',
+  '1. 你没有具体案件的信息，不要假装知道某个案子的凶手，也不要编造剧情。',
+  '2. 只回答推理方法、玩法规则、如何整理线索这类问题。',
+  '3. 如果对方问某个具体案件的真相，说明「进入游戏后我才能看到你的线索」。',
+  '4. 用中文，控制在 120 字以内，语气像老练的 DM。',
+].join('\n');
+
+/** 首页 AI DM 问答：无房间上下文，只做通用推理陪练，失败降级 Mock。 */
+export async function generateChatAnswer(question: string): Promise<AIChatReply> {
+  const apiKey = process.env.OPENAI_API_KEY?.trim();
+  if (!apiKey) return buildAIChatReply(question);
+
+  try {
+    const client = new OpenAI({
+      apiKey,
+      timeout: AI_TIMEOUT_MS,
+      maxRetries: 0,
+      baseURL: process.env.OPENAI_BASE_URL?.trim() || undefined,
+    });
+    const completion = await client.chat.completions.create({
+      model: process.env.OPENAI_MODEL ?? 'gpt-4o-mini',
+      temperature: 0.6,
+      messages: [
+        { role: 'system', content: CHAT_SYSTEM_PROMPT },
+        { role: 'user', content: question },
+      ],
+    });
+
+    const answer = (completion.choices[0]?.message?.content ?? '').trim();
+    if (answer === '') return buildAIChatReply(question);
+
+    return {
+      answer,
+      disclaimer: 'AI DM 仅帮助你整理思路，不剧透凶手，也不替你做决定。',
+      source: 'llm',
+    };
+  } catch (error) {
+    console.warn('[ai] AI DM 问答失败，降级为 Mock：', (error as Error).message);
+    return buildAIChatReply(question);
   }
 }
