@@ -65,7 +65,7 @@ jobs:
       # 不加这一步，main 一合并就会红在 project-checks。
       # 刻意不开 cache：docs 类分支可能没有 package.json / lockfile，开了会直接失败。
       - name: 准备 Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '22'
 
