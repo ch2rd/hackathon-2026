@@ -30,7 +30,7 @@ jobs:
           VITE_USE_MOCK: 'true'
           VITE_DEMO_MODE: 'true'
           VITE_ROUTER_MODE: hash
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
